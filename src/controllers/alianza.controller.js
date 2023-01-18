@@ -2,6 +2,8 @@ import { getConnection } from '../database/database'
 const config = require('./../config')
 
 
+const PUBLIC_URL  = process.env.PUBLIC_URL
+
 const _TABLA = "tmunay_alianzas"
 const addAlianza = async (req, res) => {
   try {
@@ -10,6 +12,8 @@ const addAlianza = async (req, res) => {
     const alianza = { nombre, enlace, estado: 'activo', usuarioCreacion };
 
     const connection = await getConnection()
+    //let sql  = `INSERT INTO ${_TABLA}(nombre,enlace,imagen,estado,usuarioCreacion,fechaCreacion, usuarioModificacion,fechaModificacion) VALUES(?,?,?,?,?,?,?,?)`
+    //const result = await connection.query(sql,[nom,enl,img,est,usr,fc,usr,fm])
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, alianza)
     console.log(result)
     res.json({ body: result })
