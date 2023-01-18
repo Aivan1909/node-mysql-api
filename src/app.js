@@ -1,6 +1,9 @@
 import express from 'express'
 import morgan from 'morgan'
+const path = require('path')
 const cors = require('cors')
+const bodyParser = require('body-parser')
+
 
 // Routes
 const error = require('./red/errors')
@@ -18,10 +21,13 @@ const corsOptions = {
 app.use(cors())
 
 //Middlewares
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(morgan('dev'))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use('/uploads', express.static('uploads'))
+/* app.use(express.urlencoded({ extended: true }))
+app.use(express.json()) */
+app.use(express.static(path.join(__dirname, 'public')))
 
 //Routes
 app.use(error)
