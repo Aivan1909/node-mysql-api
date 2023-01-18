@@ -3,16 +3,25 @@ import { getConnection } from '../database/database'
 
 const PUBLIC_URL  = process.env.PUBLIC_URL
 
-const _TABLA = "tmunay_alianzas"
-const addAlianza = async (req, res) => {
+const _TABLA  = "tmunay_equipo"
+const _TABLA1 = "roless"
+ const addEquipos = async (req, res) => {
    //const {body ,file} = req
    console.log(req.body)
    try {
-    const alianza = req.body
+    const Equipo = req.body
     const connection = await getConnection()
-    //let sql  = `INSERT INTO ${_TABLA}(nombre,enlace,imagen,estado,usuarioCreacion,fechaCreacion, usuarioModificacion,fechaModificacion) VALUES(?,?,?,?,?,?,?,?)`
-    //const result = await connection.query(sql,[nom,enl,img,est,usr,fc,usr,fm])
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, alianza)
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, Ods)
+
+    //Actualizamos el rol personal de Equipo
+    let veri = `SELECT id  FROM ${_TABLA} as U  WHERE  EXISTS
+               (SELECT * FROM ${_TABLA1} as R  WHERE U.id=req.id
+                and R.rol_id=4)`
+    const veriRol = await connection.query(veri)
+    if(veriRol.recordset[0].id=null){
+      await connection.query(`UPDATE ${_TABLA1} SET `, Ods)
+    }
+    
     console.log(result)
     res.json({ body: result })
   } catch (error) {
@@ -21,7 +30,7 @@ const addAlianza = async (req, res) => {
   }
 }
 
-const getAlianzas = async (req, res) => {
+const getEquipos = async (req, res) => {
   try {
     const connection = await getConnection()
     const result = await connection.query(`SELECT * FROM ${_TABLA}`)
@@ -32,7 +41,7 @@ const getAlianzas = async (req, res) => {
   }
 }
 
-const getAlianza = async (req, res) => {
+const getEquipo = async (req, res) => {
   try {
     console.log(req.params)
     const { id } = req.params;
@@ -45,17 +54,17 @@ const getAlianza = async (req, res) => {
   }
 }
 
-const updateAlianza = async (req, res) => {
+const updateEquipo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, enlace, imagen, usuarioModificacion } = req.body;
+    const { nombre, imagen, usuarioModificacion } = req.body;
     if (nombre === undefined)
       res.status(400).json({ message: "Bad Request" })
 
-    const alianza = { nombre, enlace, imagen, usuarioModificacion }
-    console.log(alianza)
+    const Ods = { nombre, imagen, usuarioModificacion }
+    console.log(Ods)
     const connection = await getConnection()
-    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id])
+    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [Ods, id])
     res.json({ body: result[0] })
   } catch (error) {
     res.status(500)
@@ -63,12 +72,12 @@ const updateAlianza = async (req, res) => {
   }
 }
 
-const deleteAlianza = async (req, res) => {
+const deleteEquipo = async (req, res) => {
   try {
     console.log(req.params)
     const { id } = req.params;
     const connection = await getConnection()
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id)
+    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`,id)
     res.json({ body: result })
   } catch (error) {
     res.status(500)
@@ -77,9 +86,9 @@ const deleteAlianza = async (req, res) => {
 }
 
 export const methods = {
-  addAlianza,
-  getAlianzas,
-  getAlianza,
-  updateAlianza,
-  deleteAlianza
+  addOdss,
+  getOdss,
+  getOds,
+  updateOds,
+  deleteOds
 }

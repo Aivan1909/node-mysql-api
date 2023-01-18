@@ -6,6 +6,13 @@ const cors = require('cors')
 const error = require('./red/errors')
 import alianzaRoutes from './routes/alianza.routes'
 import usuarioRoutes from './routes/usuario.routes'
+import trayectoriaRoutes from './routes/trayectoria.routes'
+import colaboradorRoutes from './routes/colaborador.routes'
+import testimonioRoutes from './routes/testimonio.routes'
+import muestreoRoutes from './routes/muestreo.routes'
+import odsRoutes from './routes/ods.routes'
+
+
 
 const app = express()
 
@@ -24,9 +31,19 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/uploads', express.static('uploads'))
 
 //Routes
+//-------------------------------------------------------------------------------------------
 app.use(error)
 app.use("/api/alianzas", alianzaRoutes)
 app.use("/api/usuarios", usuarioRoutes)
+app.use("/api/trayectorias",trayectoriaRoutes)
+app.use("/api/colaboradores",colaboradorRoutes)
+app.use("/api/testimonios",testimonioRoutes)
+app.use("/api/ods",odsRoutes)
+
+//muestreo 
+app.use("/api/muestreos",muestreoRoutes)
+
+//-------------------------------------------------------------------------------------------
 
 
 export default app;
