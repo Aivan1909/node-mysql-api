@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { methods as trayectoriaController } from './../controllers/trayectoria.controller'
 const authenticate = require('./../middleware/authenticate')
-const uploadImg = require('./../middleware/upload');
+const { uploadImg } = require('./../middleware/upload');
+
 
 const router = Router()
 

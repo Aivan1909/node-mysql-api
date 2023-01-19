@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { methods as testimonioController } from './../controllers/testimonio.controller'
 const authenticate = require('./../middleware/authenticate')
-const uploadImg = require('./../middleware/upload');
+const { uploadImg } = require('./../middleware/upload');
 
 const router = Router()
 

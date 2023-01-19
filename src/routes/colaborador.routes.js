@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { methods as colaboradorControl } from './../controllers/colaborador.controller'
 const authenticate = require('./../middleware/authenticate')
-const uploadImg = require('./../middleware/upload');
+const { uploadImg } = require('./../middleware/upload');
 
 const router = Router()
 
