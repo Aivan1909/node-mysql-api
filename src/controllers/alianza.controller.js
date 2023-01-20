@@ -52,6 +52,7 @@ const updateAlianza = async (req, res) => {
         const { nombre, enlace, usuarioModificacion } = req.body;
         if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
         const alianza = { nombre, enlace, usuarioModificacion };
+        alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
         await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id]);
         const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
