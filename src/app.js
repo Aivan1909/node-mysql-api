@@ -18,6 +18,18 @@ import asesorRoutes from './routes/asesor.routes'
 import criterioRoutes from './routes/criterio.routes'
 import faseRoutes from './routes/fases.routes'
 import badgeRoutes from './routes/badge.routes'
+import dptoRoutes from './routes/departamento.routes'
+import figuraRoutes from './routes/figura.routes'
+import sectorRoutes from './routes/sector.routes'
+import medioRoutes from './routes/medio.routes'
+import suscripcionRoutes from './routes/suscripcion.routes'
+import visibilidadRoutes from './routes/visibilidad.routes'
+import plataformaRoutes from './routes/plataforma.routes'
+import publicidadRoutes from './routes/publicidad.routes'
+
+
+
+
 
 
 
@@ -49,14 +61,25 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(error)
 app.use("/api/alianzas", alianzaRoutes)
 app.use("/api/usuarios", usuarioRoutes)
-app.use("/api/trayectoria",trayectoriaRoutes)
-app.use("/api/colaboradores",colaboradorRoutes)
-app.use("/api/testimonios",testimonioRoutes)
-app.use("/api/ods",odsRoutes)
-app.use("/api/asesores",asesorRoutes)
-app.use("/api/criterio",criterioRoutes)
-app.use("/api/fase",faseRoutes)
-app.use("/api/badge",badgeRoutes)
+app.use("/api/trayectoria", trayectoriaRoutes)
+app.use("/api/colaboradores", colaboradorRoutes)
+app.use("/api/testimonios", testimonioRoutes)
+app.use("/api/ods", odsRoutes)
+app.use("/api/asesores", asesorRoutes)
+app.use("/api/criterios", criterioRoutes)
+app.use("/api/fases", faseRoutes)
+app.use("/api/badges", badgeRoutes)
+app.use("/api/dptos", dptoRoutes)
+app.use("/api/figuras", figuraRoutes)
+app.use("/api/sectores", sectorRoutes )
+app.use("/api/medios",medioRoutes)
+app.use("/api/suscripciones",suscripcionRoutes)
+app.use("/api/visibilidad",visibilidadRoutes)
+app.use("/api/plataformas", plataformaRoutes)
+app.use("/api/publicidades", publicidadRoutes)
+
+
+
 
 //muestreo 
 app.use("/api/muestreo",muestreoRoutes)

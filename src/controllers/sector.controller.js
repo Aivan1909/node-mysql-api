@@ -3,17 +3,14 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_fases';
-
-const addFases = async (req, res) => {
+const _TABLA = 'tmunay_sectores';
+const addsectores = async (req, res) => {
   try {
-    const fase = req.body;
-    fase.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    fase.estado = 1;
+    const sector = req.body;
+    sector.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    sector.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, fase);
-    //const path = SaveOneFile({ mainFolder: 'fase', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, sector);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -21,12 +18,11 @@ const addFases = async (req, res) => {
   }
 };
 
-const getFases = async (req, res) => {
+const getsectores = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-   // const foundFasesWithImages = [...result].map((item) => {
-   // return { ...item, file: getOneFile(item.imagen) };});
+    
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -34,7 +30,7 @@ const getFases = async (req, res) => {
   }
 };
 
-const getFase = async (req, res) => {
+const getsector = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
@@ -48,24 +44,27 @@ const getFase = async (req, res) => {
   }
 };
 
-const updateFase = async (req, res) => {
+const updatesector = async (req, res) => {
     try {
         const { id } = req.params;
-        const { descripcion,usuarioModificacion } = req.body;
+        const { descripcion  } = req.body;
         if (descripcion === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const fases = { descripcion, usuarioModificacion };
-        fases.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+        const sector = { descripcion };
+        sector.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [fases, id]);
-        const foundFases = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        res.json({ body: foundFases[0] });
+        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [sector, id]);
+        const foundsector = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        //if (req.file) {
+        //    updateOneFile({ pathFile: foundsector[0].imagen, file: req.file });
+        //}
+        res.json({ body: foundsector[0]});
     } catch (error) {
         res.status(500);
         res.json(error.message);
     }
 };
 
-const deleteFase = async (req, res) => {
+const deletesector = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
@@ -78,9 +77,9 @@ const deleteFase = async (req, res) => {
 };
 
 export const methods = {
-  addFases,
-  getFases,
-  getFase,
-  updateFase,
-  deleteFase,
+  addsectores,
+  getsectores,
+  getsector,
+  updatesector,
+  deletesector,
 };

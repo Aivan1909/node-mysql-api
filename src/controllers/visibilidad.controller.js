@@ -3,17 +3,15 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_fases';
+const _TABLA = 'tmunay_visibilidad';
 
-const addFases = async (req, res) => {
+const addvisibilidades = async (req, res) => {
   try {
-    const fase = req.body;
-    fase.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    fase.estado = 1;
+    const visibilidad = req.body;
+    visibilidad.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    visibilidad.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, fase);
-    //const path = SaveOneFile({ mainFolder: 'fase', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, visibilidad);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -21,11 +19,11 @@ const addFases = async (req, res) => {
   }
 };
 
-const getFases = async (req, res) => {
+const getvisibilidades = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-   // const foundFasesWithImages = [...result].map((item) => {
+   // const foundvisibilidadsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
   } catch (error) {
@@ -34,7 +32,7 @@ const getFases = async (req, res) => {
   }
 };
 
-const getFase = async (req, res) => {
+const getvisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
@@ -48,24 +46,24 @@ const getFase = async (req, res) => {
   }
 };
 
-const updateFase = async (req, res) => {
+const updatevisibilidad = async (req, res) => {
     try {
         const { id } = req.params;
-        const { descripcion,usuarioModificacion } = req.body;
-        if (descripcion === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const fases = { descripcion, usuarioModificacion };
-        fases.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+        const { nroPublicacion } = req.body;
+        if (nroPublicacion === undefined) return res.status(400).json({ message: 'Bad Request' });
+        const visibilidads = { nroPublicacion, usuarioModificacion };
+        visibilidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [fases, id]);
-        const foundFases = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        res.json({ body: foundFases[0] });
+        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [visibilidads, id]);
+        const foundvisibilidads = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        res.json({ body: foundvisibilidads[0] });
     } catch (error) {
         res.status(500);
         res.json(error.message);
     }
 };
 
-const deleteFase = async (req, res) => {
+const deletevisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
@@ -78,9 +76,9 @@ const deleteFase = async (req, res) => {
 };
 
 export const methods = {
-  addFases,
-  getFases,
-  getFase,
-  updateFase,
-  deleteFase,
+  addvisibilidades,
+  getvisibilidades,
+  getvisibilidad,
+  updatevisibilidad,
+  deletevisibilidad,
 };
