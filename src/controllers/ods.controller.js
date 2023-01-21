@@ -5,29 +5,31 @@ const PUBLIC_URL  = process.env.PUBLIC_URL
 
 const _TABLA = "tmunay_ods"
 const addOdss = async (req, res) => {
-   //const {body ,file} = req
-   console.log(req.body)
-   try {
-    const Ods = req.body
-    const connection = await getConnection()
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, Ods)
-    console.log(result)
-    res.json({ body: result })
-  } catch (error) {
-    res.status(500)
-    res.json(error.message)
-  }
+  try {
+    const ods = req.body;
+    const connection = await getConnection();
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, ods);
+    const path = SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: req.file });
+    await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    res.json({ body: result });
+} catch (error) {
+    res.status(500);
+    res.json(error.message);
+}
 }
 
 const getOdss = async (req, res) => {
   try {
-    const connection = await getConnection()
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`)
-    res.json({ body: result })
-  } catch (error) {
-    res.status(500)
-    res.json(error.message)
-  }
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const foundAlianzasWithImages = [...result].map((item) => {
+        return { ...item, file: getOneFile(item.imagen) };
+    });
+    res.json({ body: foundAlianzasWithImages });
+} catch (error) {
+    res.status(500);
+    res.json(error.message);
+}
 }
 
 const getOds = async (req, res) => {

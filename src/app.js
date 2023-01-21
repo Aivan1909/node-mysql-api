@@ -14,6 +14,14 @@ import colaboradorRoutes from './routes/colaborador.routes'
 import testimonioRoutes from './routes/testimonio.routes'
 import muestreoRoutes from './routes/muestreo.routes'
 import odsRoutes from './routes/ods.routes'
+import asesorRoutes from './routes/asesor.routes'
+import criterioRoutes from './routes/criterio.routes'
+import faseRoutes from './routes/fases.routes'
+import badgeRoutes from './routes/badge.routes'
+
+
+
+
 
 
 
@@ -45,9 +53,13 @@ app.use("/api/trayectoria",trayectoriaRoutes)
 app.use("/api/colaboradores",colaboradorRoutes)
 app.use("/api/testimonios",testimonioRoutes)
 app.use("/api/ods",odsRoutes)
+app.use("/api/asesores",asesorRoutes)
+app.use("/api/criterio",criterioRoutes)
+app.use("/api/fase",faseRoutes)
+app.use("/api/badge",badgeRoutes)
 
 //muestreo 
-app.use("/api/muestreos",muestreoRoutes)
+app.use("/api/muestreo",muestreoRoutes)
 
 //-------------------------------------------------------------------------------------------
 
