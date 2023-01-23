@@ -56,7 +56,9 @@ const updateAlianza = async (req, res) => {
         await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id]);
         const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
         if (req.file) {
-            updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
+            const responseUpdateImage=updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
+            if(responseUpdateImage)
+                await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
         }
         res.json({ body: foundAlianza[0] });
     } catch (error) {

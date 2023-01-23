@@ -43,7 +43,7 @@ function createFolder(path) {
 function SaveOneFile({ mainFolder, idFolder, file }) {
     try {
         const pathFolder = `${mainFolder}/${idFolder}`;
-        const filename = `${moment().unix()}${path.extname(file.originalname)}`;
+        const filename = `${Math.round(Math.random() * 99999)}-${moment().unix()}${path.extname(file.originalname)}`;
         createFolder(pathFolder);
         fs.writeFile(`uploads/${pathFolder}/${filename}`, file.buffer, 'binary', (error) => {
             if (error) throw new Error('Error al crear al archivo', error);
@@ -75,6 +75,9 @@ function updateOneFile({ pathFile, file }) {
         fs.writeFile(pathFile, file.buffer, 'binary', (error) => {
             if (error) throw new Error('Error al actualizar el archivo', error);
         });
+        const oldExt = path.extname(pathFile);
+        const newExt = path.extname(file.originalname);
+        return oldExt !== newExt && pathFile.replace(oldExt, newExt);
     } catch (error) {
         console.error(error);
         throw new Error(error);
@@ -94,14 +97,22 @@ function isImage(req, res, next) {
     try {
         if (req.file) {
             const type = String(req.file.mimetype);
-            if ((type.includes('jpg') || type.includes('png')||type.includes('jpeg')))
-                return next();
+            if (type.includes('jpg') || type.includes('png') || type.includes('jpeg')) return next();
             return res.status(406).json({ message: 'Solo se Acepta Imagenes de  tipo jpeg, png, jpg' });
         }
         return next();
     } catch (error) {
-        console.error(error)
-        return res.status(500)
+        console.error(error);
+        return res.status(500);
     }
 }
-export { uploadImg, SaveOneFile, getOneFile, updateOneFile, deleteOneFile, isImage };
+
+function deleleFolder(pathfile) {
+    try {
+        const pathFolder = String(pathfile).substring(0, String(pathfile).lastIndexOf('/'));
+        fs.unlinkSync(pathFolder);
+    } catch (error) {
+        throw new Error(error);
+    }
+}
+export { uploadImg, SaveOneFile, getOneFile, updateOneFile, deleteOneFile, isImage,deleleFolder };
