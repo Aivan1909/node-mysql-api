@@ -26,6 +26,15 @@ import suscripcionRoutes from './routes/suscripcion.routes'
 import visibilidadRoutes from './routes/visibilidad.routes'
 import plataformaRoutes from './routes/plataforma.routes'
 import publicidadRoutes from './routes/publicidad.routes'
+import rolRoutes from './routes/roles.routes'
+import planRoutes from './routes/plan.routes'
+import mentorRoutes from './routes/mentor.routes'
+import mentoriaRoutes from './routes/mentoria.routes'
+import horarioRoutes from './routes/horario.routes'
+import areaRoutes from './routes/area.routes'
+import especialidadRoutes from './routes/especialidad.routes'
+
+
 
 
 
@@ -77,6 +86,17 @@ app.use("/api/suscripciones",suscripcionRoutes)
 app.use("/api/visibilidad",visibilidadRoutes)
 app.use("/api/plataformas", plataformaRoutes)
 app.use("/api/publicidades", publicidadRoutes)
+app.use("/api/planes", planRoutes)
+app.use("/api/roles",rolRoutes)
+
+// Creacion de tabla mentores 
+app.use("/api/mentores", mentorRoutes)
+app.use("/api/mentorias", mentoriaRoutes)
+app.use("/api/horarios", horarioRoutes)
+app.use("/api/areas", areaRoutes)
+app.use("/api/especialidades", especialidadRoutes)
+
+
 
 
 
