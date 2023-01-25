@@ -11,6 +11,7 @@ import colaboradorRoutes from './routes/colaborador.routes'
 import testimonioRoutes from './routes/testimonio.routes'
 import muestreoRoutes from './routes/muestreo.routes'
 import odsRoutes from './routes/ods.routes'
+import emprendimientoRoutes from './routes/emprendimiento.route';
 
 
 
@@ -39,6 +40,7 @@ app.use("/api/trayectorias",trayectoriaRoutes)
 app.use("/api/colaboradores",colaboradorRoutes)
 app.use("/api/testimonios",testimonioRoutes)
 app.use("/api/ods",odsRoutes)
+app.use("/api/emprendimiento",emprendimientoRoutes)
 
 //muestreo 
 app.use("/api/muestreos",muestreoRoutes)
