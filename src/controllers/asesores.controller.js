@@ -3,14 +3,14 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_alianzas';
-const addAlianza = async (req, res) => {
+const _TABLA = 'tmunay_asesor';
+const addAsesor = async (req, res) => {
   try {
-    const alianza = req.body;
-    alianza.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const asesor = req.body;
+    asesor.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, alianza);
-    const path = SaveOneFile({ mainFolder: 'alianza', idFolder: result.insertId, file: req.file });
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, asesor);
+    const path = SaveOneFile({ mainFolder: 'asesor', idFolder: result.insertId, file: req.file });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -19,21 +19,21 @@ const addAlianza = async (req, res) => {
   }
 };
 
-const getAlianzas = async (req, res) => {
+const getAsesores = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-    const foundAlianzasWithImages = [...result].map((item) => {
+    const foundAsesoresWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
-    res.json({ body: foundAlianzasWithImages });
+    res.json({ body: foundAsesoresWithImages });
   } catch (error) {
     res.status(500);
     res.json(error.message);
   }
 };
 
-const getAlianza = async (req, res) => {
+const getAsesor = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
@@ -47,35 +47,33 @@ const getAlianza = async (req, res) => {
   }
 };
 
-const updateAlianza = async (req, res) => {
+const updateAsesor = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, enlace, usuarioModificacion } = req.body;
-        if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const alianza = { nombre, enlace, usuarioModificacion };
-        alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+        const { nombres,apellidos,cargo,redSocial, usuarioModificacion } = req.body;
+        if (nombres === undefined) return res.status(400).json({ message: 'Bad Request' });
+        const asesor = { nombre, apellidos, cargo, redSocial, usuarioModificacion };
+        asesor.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id]);
+        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [asesor, id]);
         const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
         if (req.file) {
-            const responseUpdateImage=updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
-            if(responseUpdateImage)
-                await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
+            updateOneFile({ pathFile: foundAsesor[0].imagen, file: req.file });
         }
-        res.json({ body: foundAlianza[0] });
+        res.json({ body: foundAsesor[0] });
     } catch (error) {
         res.status(500);
         res.json(error.message);
     }
 };
 
-const deleteAlianza = async (req, res) => {
+const deleteAsesor = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const foundAsesor = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (foundAlianza.length > 0) {
-      deleteOneFile(foundAlianza[0].imagen);
+      deleteOneFile(foundAsesor[0].imagen);
     }
     const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
     res.json({ body: result });
@@ -86,9 +84,9 @@ const deleteAlianza = async (req, res) => {
 };
 
 export const methods = {
-  addAlianza,
-  getAlianzas,
-  getAlianza,
-  updateAlianza,
-  deleteAlianza,
+  addAsesor,
+  getAsesores,
+  getAsesor,
+  updateAsesor,
+  deleteAsesor,
 };
