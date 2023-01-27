@@ -48,23 +48,23 @@ const getAlianza = async (req, res) => {
 };
 
 const updateAlianza = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, enlace, usuarioModificacion } = req.body;
-    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const alianza = { nombre, enlace, usuarioModificacion };
-    alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id]);
-    const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-    if (req.file) {
-      updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
+    try {
+        const { id } = req.params;
+        const { nombre, enlace, usuarioModificacion } = req.body;
+        if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+        const alianza = { nombre, enlace, usuarioModificacion };
+        alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+        const connection = await getConnection();
+        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id]);
+        const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        if (req.file) {
+            updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
+        }
+        res.json({ body: foundAlianza[0] });
+    } catch (error) {
+        res.status(500);
+        res.json(error.message);
     }
-    res.json({ body: foundAlianza[0] });
-  } catch (error) {
-    res.status(500);
-    res.json(error.message);
-  }
 };
 
 const deleteAlianza = async (req, res) => {

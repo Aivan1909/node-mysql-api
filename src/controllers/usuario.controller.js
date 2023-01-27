@@ -115,8 +115,9 @@ const getRegistros = async (req, res) => {
   try {
     const connection = await getConnection()
     const result = await connection.query(`SELECT * FROM ${_TABLA}`)
-    res.json(result)
+    res.json({ body: result })
   } catch (error) {
+    console.log(error)
     res.status(500).json(error.message)
   }
 }
