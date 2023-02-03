@@ -38,7 +38,7 @@ const addRegistro = async (req, res) => {
             relacionRol
           );
           //Insertando  a la tabla relacional 
-          
+
           result = await connection.query(
             `SELECT * FROM ${_TABLA} WHERE id=?`,
             insertId
