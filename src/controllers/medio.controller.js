@@ -23,7 +23,7 @@ const addmedios = async (req, res) => {
 const getmedios = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT id as 'value', redSocial as 'label' FROM ${_TABLA}`);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
