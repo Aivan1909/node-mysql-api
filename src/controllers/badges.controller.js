@@ -8,6 +8,7 @@ const addBadges = async (req, res) => {
   try {
     const badges = req.body;
     badges.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    badges.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, badges);
     const path = SaveOneFile({ mainFolder: 'badges', idFolder: result.insertId, file: req.file });
@@ -22,7 +23,7 @@ const addBadges = async (req, res) => {
 const getBadges = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
     const foundBadgesWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });

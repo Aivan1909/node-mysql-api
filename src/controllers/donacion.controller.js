@@ -4,6 +4,10 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_donacion';
+const _TABLA1 = 'campana_donacion';
+const _TABLA2 = 'donacion_monto';
+const _TABLA3 = 'tmunay_donacion';
+
 
 const addDonaciones = async (req, res) => {
   try {
@@ -11,9 +15,47 @@ const addDonaciones = async (req, res) => {
     donacion.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     donacion.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, donacion);
+    let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, donacion);
     //const path = SaveOneFile({ mainFolder: 'donacion', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+
+  //insertando la relacion Montos
+    const { insertId } = result;
+    const relacionCampana = {
+      campana_id: insertId,
+      donacion_id: req.donacion,
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA1} SET ?`,
+      relacionCampana
+    );
+    //Insertando  a la tabla relacional 
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId
+    );
+
+     //insertando la relacion Montos
+     const { insertId1 } = result;
+     const relacionMonto = {
+       monto_id: insertId,
+       donacion_id: req.donacion,
+     };
+ 
+     result = await connection.query(
+       `INSERT INTO ${_TABLA2} SET ?`,
+       relacionMonto
+     );
+     //Insertando  a la tabla relacional 
+     result = await connection.query(
+       `SELECT * FROM ${_TABLA} WHERE id=?`,
+       insertId1
+     );
+
+     //Relacion con Usuarios 
+     //Relacion con emprendimientos 
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -24,7 +66,7 @@ const addDonaciones = async (req, res) => {
 const getDonaciones = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
    // const founddonacionsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -38,7 +80,7 @@ const getDonacion = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });

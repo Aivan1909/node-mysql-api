@@ -6,10 +6,10 @@ const PUBLIC_URL  = process.env.PUBLIC_URL
 const _TABLA = "tmunay_testimonios"
 
 const addTestimonios = async (req, res) => {
-   
   try {
     const testimonio = req.body;
     testimonio.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    testimonio.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, testimonio);
     const path = SaveOneFile({ mainFolder: 'testimonio', idFolder: result.insertId, file: req.file });
@@ -25,7 +25,7 @@ const getTestimonios = async (req, res) => {
 
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1' `);
     const foundTestimonioWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
@@ -40,7 +40,7 @@ const getTestimonio = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'` , id);
     if (!result.length > 0) return res.status(404);
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });

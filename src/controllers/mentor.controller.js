@@ -9,7 +9,6 @@ const addMentores = async (req, res) => {
   try {
     const mentor = req.body;
     mentor.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    mentor.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentor);
     //const path = SaveOneFile({ mainFolder: 'mentor', idFolder: result.insertId, file: req.file });

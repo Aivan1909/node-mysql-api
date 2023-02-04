@@ -24,7 +24,7 @@ const addFases = async (req, res) => {
 const getFases = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE estado = '1'`);
    // const foundFasesWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -38,7 +38,7 @@ const getFase = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1' `, id);
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });

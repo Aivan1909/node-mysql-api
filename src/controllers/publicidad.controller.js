@@ -22,7 +22,7 @@ const addPublicidades = async (req, res) => {
 const getPublicidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
 
     res.json({ body: result });
   } catch (error) {

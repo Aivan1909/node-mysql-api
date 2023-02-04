@@ -8,6 +8,8 @@ const _TABLA = "tmunay_colaboradores"
 const addColaboradores = async (req, res) => {
   try {
     const colaborador = req.body;
+    colaborador.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    colaborador.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, colaborador);
     const path = SaveOneFile({ mainFolder: 'colaborador', idFolder: result.insertId, file: req.file });
@@ -22,7 +24,7 @@ const addColaboradores = async (req, res) => {
 const getColaboradores = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
     const foundColaboradorWithImages = [...result].map((item) => {
         return { ...item, file: getOneFile(item.imagen) };
     });
@@ -37,7 +39,7 @@ const getColaborador = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });

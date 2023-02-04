@@ -4,6 +4,9 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_visibilidad';
+const _TABLA1 = 'publicidad_visibilidad';
+const _TABLA2 = 'plataforma_visibilidad';
+
 
 const addvisibilidades = async (req, res) => {
   try {
@@ -11,7 +14,47 @@ const addvisibilidades = async (req, res) => {
     visibilidad.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     visibilidad.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, visibilidad);
+    let  result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, visibilidad);
+
+    //insertando la relacional  de publicidad  
+    const { insertId } = result;
+    const relacionPublicidad = {
+      publicidad_id: insertId,
+      visibilidad_id: req.visibilidad,
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA1} SET ?`,
+      relacionPublicidad
+    );
+    //Insertando  a la tabla relacional 
+    
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId
+    );
+
+    //insertando la relacional  de publicidad  
+    const { insertId1 } = result;
+    const relacionPlataforma = {
+      plataforma_id: insertId,
+      visibilidad_id: req.visibilidad,
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA2} SET ?`,
+      relacionPlataforma
+    );
+    //Insertando la relacional de plataforma
+    
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId1
+    );
+    
+    //Insertar la tabla relacional  con emprendimiento
+
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -22,7 +65,7 @@ const addvisibilidades = async (req, res) => {
 const getvisibilidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
    // const foundvisibilidadsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -36,7 +79,7 @@ const getvisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });

@@ -3,7 +3,8 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = '	tmunay_suscripcion';
+const _TABLA = 'tmunay_suscripcion';
+const _TABLA1 = 'plan_suscripcion';
 
 const addsuscripciones = async (req, res) => {
   try {
@@ -11,7 +12,29 @@ const addsuscripciones = async (req, res) => {
     suscripcion.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     suscripcion.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, suscripcion);
+    let  result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, suscripcion);
+
+    //insertando a la tabla Plan
+    const { insertId } = result;
+    const relacionPlan = {
+      plan_id: insertId,
+      suscripcion_id: req.plan,
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA1} SET ?`,
+      relacionPlan
+    );
+    //Insertando  a la tabla relacional 
+    
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId
+    );
+
+    //Insertar la relacion de emprendimeinto 
+
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -22,7 +45,7 @@ const addsuscripciones = async (req, res) => {
 const getsuscripciones = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where esatdo  = '1'`);
    // const foundsuscripcionsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -36,7 +59,7 @@ const getsuscripcion = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });

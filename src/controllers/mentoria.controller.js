@@ -4,6 +4,10 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_mentorias';
+const _TABLA1 = 'horario_mentoria';
+const _TABLA2 = 'area_mentoria';
+const _TABLA3 = 'mentoria_mentor';
+
 
 const addMentorias = async (req, res) => {
   try {
@@ -11,9 +15,63 @@ const addMentorias = async (req, res) => {
     mentoria.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     mentoria.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
+    let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
     //const path = SaveOneFile({ mainFolder: 'mentoriaia', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    
+    //insertando la relacion  Horarios 
+    const {insertId} = result;
+    const relacionHorarios  = { 
+      mentorias_id: insertId,
+      horarios_id: req.horarios_id 
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA1} SET ?`,
+      relacionHorarios
+    );
+
+
+    /*
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId
+    );
+
+    //Insertando la relacion de area 
+    const {insertId1} = result ; 
+    const relacionArea  = { 
+      area_id: insertId1,
+      mentoria_id: 1 //req.mentoria 
+    };
+
+    result = await connection.query(  
+      `INSERT INTO ${_TABLA2} SET ?`,
+      relacionArea
+    );
+
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId1
+    );
+ 
+    //Insertando la relacion de Mentores 
+    const {insertId2} = result ; 
+    const relacionMentor  = { 
+      mentores_id: 1, //insertId2,
+      mentorias_id: 1 //req.mentoria 
+    };
+
+    result = await connection.query(
+      `INSERT INTO ${_TABLA3} SET ?`,
+      relacionMentor
+    );
+
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId2
+    );
+*/
     res.json({ body: result });
   } catch (error) {
     res.status(500);
