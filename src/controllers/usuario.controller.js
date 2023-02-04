@@ -38,7 +38,7 @@ const addRegistro = async (req, res) => {
             relacionRol
           );
           //Insertando  a la tabla relacional 
-          
+
           result = await connection.query(
             `SELECT * FROM ${_TABLA} WHERE id=?`,
             insertId
@@ -135,11 +135,12 @@ const loginAdmin = async (req, res) => {
 
 const getRegistros = async (req, res) => {
   try {
-    const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-    res.json(result);
+    const connection = await getConnection()
+    const result = await connection.query(`SELECT * FROM ${_TABLA}`)
+    res.json({ body: result })
   } catch (error) {
-    res.status(500).json(error.message);
+    console.log(error)
+    res.status(500).json(error.message)
   }
 };
 
