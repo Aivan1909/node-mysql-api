@@ -10,6 +10,11 @@ const _TABLA3 = "tmunay_colaboradores"
 const _TABLA4 = "tmunay_alianzas"
 const _TABLA5 = "users"
 const _TABLA6 = "tmunay_testimonios"
+const _TABLA7 = "tmunay_emprendimientos"
+const _TABLA8 = "tmunay_horarios"
+const _TABLA9 = "tmunay_montos"
+
+
 
 
 const getSobreMunay = async (req, res) => {
@@ -47,7 +52,28 @@ const getSobreMunay = async (req, res) => {
       const connection = await getConnection()
             
       let sql2 = `SELECT nombre,testimonio,imagen FROM ${_TABLA6}`
-      const result = await connection.query(sql2)      
+      const testimonio = await connection.query(sql2)
+
+      //Obteniendo 
+      const foundTestimoniosWithImages = [...testimonio].map((item) => {
+        return { ...item, file: getOneFile(item.imagen) };
+      });
+      
+
+      let sql3 = `SELECT 'registrados' as id ,count(*) as cantidad FROM ${_TABLA7}`
+      const emprendimiento = await connection.query(sql3)
+      
+      let sql4 = `SELECT 'horas' as id, sum(duracion) as cantidad FROM ${_TABLA8}`
+      const mentoria = await connection.query(sql4)
+      
+      let sql5 = `SELECT 'monto' as id, sum(monto) as cantidad, 'USD' as medida FROM ${_TABLA9}`
+      const campana= await connection.query(sql5)
+      
+      let sql6 = `SELECT TOP 12 * as cantidad FROM ${_TABLA7} ORDER BY fechaCreacion DESC` 
+      const topEmpre = await connection.query(sql4)
+
+      const result = {'testimonio':foundTestimoniosWithImages,'impacto':[ emprendimiento[0],mentoria[0],campana[0]]}
+
       res.json({ body: result})
     } catch (error) {
       res.status(500)

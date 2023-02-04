@@ -33,6 +33,7 @@ import mentoriaRoutes from './routes/mentoria.routes'
 import horarioRoutes from './routes/horario.routes'
 import areaRoutes from './routes/area.routes'
 import especialidadRoutes from './routes/especialidad.routes'
+import emprendimientoRoutes from './routes/emprendimiento.routes'
 
 
 
@@ -88,6 +89,7 @@ app.use("/api/plataformas", plataformaRoutes)
 app.use("/api/publicidades", publicidadRoutes)
 app.use("/api/planes", planRoutes)
 app.use("/api/roles",rolRoutes)
+app.use("/api/emprendimiento",emprendimientoRoutes)
 
 // Creacion de tabla mentores 
 app.use("/api/mentores", mentorRoutes)
@@ -95,6 +97,7 @@ app.use("/api/mentorias", mentoriaRoutes)
 app.use("/api/horarios", horarioRoutes)
 app.use("/api/areas", areaRoutes)
 app.use("/api/especialidades", especialidadRoutes)
+
 
 
 
