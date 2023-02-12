@@ -13,6 +13,22 @@ const _TABLA6 = "tmunay_testimonios"
 const _TABLA7 = "tmunay_emprendimientos"
 const _TABLA8 = "tmunay_horarios"
 const _TABLA9 = "tmunay_montos"
+const _TABLA10 = "users";
+const _TABLA11 = "roless";
+const _TABLA12 = "tmunay_mentores";
+const _TABLA13 = "tmunay_kumpita";
+const _TABLA14 = "tmunay_publicacion";
+const _TABLA15 = "tmunay_testimonios";
+const _TABLA16 = "tmunay_sectores";
+const _TABLA17 = "tmunay_fases";
+const _TABLA18 = "tmunay_figuras";
+const _TABLA19 = "tmunay_ods";
+const _TABLA20 = "tmunay_areas";
+const _TABLA21 = "tmunay_especialidad";
+const _TABLA22 = "tmunay_criterios";
+
+const _TABLA23 = "emprendimiento_modal";
+
 
 
 
@@ -71,6 +87,7 @@ const getSobreMunay = async (req, res) => {
       
       let sql6 = `SELECT TOP 12 * as cantidad FROM ${_TABLA7} ORDER BY fechaCreacion DESC` 
       const topEmpre = await connection.query(sql4)
+      //Falta terminar
 
       const result = {'testimonio':foundTestimoniosWithImages,'impacto':[ emprendimiento[0],mentoria[0],campana[0]]}
 
@@ -81,4 +98,352 @@ const getSobreMunay = async (req, res) => {
     }
  }
 
-export const methods = { getSobreMunay, getInicio }
+
+
+ //Muestreo User - Admin 1 
+ const getMuestreoUser = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, estado, email as Correo, apellidos, nombre, fechaCreacion  FROM ${_TABLA10} `
+    const usuario = await connection.query(sql1)
+    const result = usuario 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Emprendimiento - Admin 2 
+const getMuestreoEmprendimiento = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, estado as Estado, emprendimiento as Empredimiento, fechaCreacion   FROM ${_TABLA7} `
+    const emprendimiento = await connection.query(sql1)
+    const result = emprendimiento 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+ 
+// Muestreo Mentores - Admin 3 
+const getMuestreoMentores = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM ${_TABLA12} A, ${_TABLA10} B WHERE A.user_id = B.id`
+    const mentores = await connection.query(sql1)
+    const result = mentores 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Kumpitas - Admin 4 
+const getMuestreoKumpita = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM ${_TABLA13} A, ${_TABLA10} B WHERE A.user_id = B.id`
+    const kumpita = await connection.query(sql1)
+    const result = kumpita 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Cursos - Admin 5 -> (Preguntar a Ivan)
+
+// Muestreo publicaciones  - Admin 6  
+const getMuestreoPublicaciones = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT estado, titulo, fechaCreacion, id  FROM ${_TABLA14}  where estado = '1' `
+    const publicaciones = await connection.query(sql1)
+    const result = publicaciones 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo testimonio  - Admin 7  
+const getMuestreoTestimonio = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT concat(nombre," ",apellidos ) as Nombre, fechaCreacion, id  FROM ${_TABLA15}  where estado = '1' `
+    const testimonio = await connection.query(sql1)
+    const result = testimonio 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muesttreo Categorias - Admin 8 (Preguntar)
+
+// Muestreo Ods - Admin 9
+const getMuestreoOds = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA19}  where estado = '1' `
+    const ods = await connection.query(sql1)
+    const result = ods 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Areas Especializacion - Admin 9
+// Area Mentoria 
+const getMuestreoArea = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA20}  where estado = '1' `
+    const Area = await connection.query(sql1)
+    const result = Area 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+// Especialidades de la mentoria 
+const getMuestreoEspecializacion = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA21}  where estado = '1' `
+    const Especialidades = await connection.query(sql1)
+    const result = Especialidades 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo sector  - Admin 10  
+const getMuestreoSector = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA16}  where estado = '1' `
+    const sector = await connection.query(sql1)
+    const result = sector 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Fases  - Admin 11 
+const getMuestreoFases = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA17}  where estado = '1' `
+    const fases = await connection.query(sql1)
+    const result = fases 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+// Muestreo Figura Legal  - Admin 12
+const getMuestreoFiguraLegal = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA18}   `
+    const figura = await connection.query(sql1)
+    const result = figura 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+//Muestreo Criterio Enfoque - Admin 13
+const getMuestreoCriterios = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT id, descripcion, estado , fechaCreacion  FROM ${_TABLA22}  where estado = '1' `
+    const Criterio = await connection.query(sql1)
+    const result = Criterio 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//Muestreo Equipo - Admin 14
+const getMuestreoEquipo = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT  A.id, B.apellidos, B.nombre, B.email , A.fechaCreacion FROM ${_TABLA} A, ${_TABLA5} B  WHERE A.user_id = B.id`
+    const equipo = await connection.query(sql1)
+    const result = equipo 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//Muestreo Asesores - Admin 15
+const getMuestreoAsesor = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT  id, estado, nombres, apellidos, cargo, fechaCreacion FROM ${_TABLA1} WHERE estado = '1'`
+    const asesor = await connection.query(sql1)
+    const result = asesor 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//Muestreo Trayectoria - Admin 16
+const getMuestreoTrayectoria = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT  id, estado, nombre, fechaCreacion FROM ${_TABLA2} WHERE estado = '1'`
+    const trayectoria = await connection.query(sql1)
+    const result = trayectoria 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//Muestreo Colaboradores - Admin 17
+const getMuestreoColaboradores = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = `SELECT  id, estado, nombre, fechaCreacion FROM ${_TABLA3} WHERE estado = '1'`
+    const colaborador = await connection.query(sql1)
+    const result = colaborador 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//Muestreo Alianzas - Admin 18
+const getMuestreoAlianzas = async (req, res) => {
+  try {
+    const connection = await getConnection()
+          
+    let sql1 = ` SELECT id, estado, nombre, fechaCreacion FROM ${_TABLA4} WHERE estado = '1'`
+    const alianza = await connection.query(sql1)
+    const result = alianza 
+    res.json({ body: result})
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
+
+//let sql2 = `SELECT nombre,testimonio,imagen FROM ${_TABLA6}`
+//const testimonio = await connection.query(sql2)
+
+//Obteniendo 
+//const foundTestimoniosWithImages = [...testimonio].map((item) => {
+//  return { ...item, file: getOneFile(item.imagen) };
+//});
+
+//Muestreo de modal  emprendimientos 
+ const getModalEmprendimientos = async (req, res) => {
+  try {
+    //const { id } = req.params;
+    const enlace = "https://www.soymunay.org/emprendimientos/";
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM ${_TABLA23} where estado = '1'`);
+    const foundEmprendimientosWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.logo) };
+    });
+    //const enlace1 = [...result].map((item) => {
+    //  return { ...item, string: item.link };
+    //});
+    //enlace1.forEach(valor => console.log("enlace500", valor[0].link))
+    //console.log("enlace",enlace1[0].link);  
+    res.json({ body: foundEmprendimientosWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+}
+}
+
+//Muestreo Detalles Emprendimiento completo [BOTON -  VERMAS]
+const getDetalleEmprendimiento = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const enlace = "https://www.soymunay.org/emprendimientos/";
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM ${_TABLA23} where estado = '1'`);
+    const foundEmprendimientosWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.logo) };
+    });
+    foundEmprendimientosWithImages.link = enlace.concat(foundEmprendimientosWithImages.link);
+    res.json({ body: foundEmprendimientosWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+
+
+
+export const methods = { 
+  getSobreMunay, 
+  getInicio,
+  getMuestreoUser,
+  getMuestreoEmprendimiento, 
+  getMuestreoMentores,
+  getMuestreoKumpita,
+  getMuestreoPublicaciones,
+  getMuestreoTestimonio,
+  getMuestreoSector,
+  getMuestreoFases, 
+  getMuestreoFiguraLegal,
+  getMuestreoOds,
+  getMuestreoArea,
+  getMuestreoEspecializacion,
+  getMuestreoCriterios,
+  getMuestreoEquipo,
+  getMuestreoAsesor,
+  getMuestreoTrayectoria,
+  getMuestreoColaboradores,
+  getMuestreoAlianzas,
+  getModalEmprendimientos,
+ };

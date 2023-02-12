@@ -54,15 +54,17 @@ const updateTestimonio = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { nombre, apellidos, imagen, testimonio, usuarioModificacion } = req.body;
+    const { nombre, apellidos, usuarioModificacion } = req.body;
     if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const Testimonio = { nombre, apellidos, imagen, testimonio, usuarioModificacion }
-    alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const testimonio = { nombre, apellidos, usuarioModificacion };
+    testimonio.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [Testimonio, id]);
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [testimonio, id]);
     const foundTestimonio = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.file) {
-        updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file });
+        const responseUpdateImage=updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file });
+        if(responseUpdateImage)
+            await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }
     res.json({ body: foundTestimonio[0] });
 } catch (error) {
@@ -78,7 +80,7 @@ const deleteTestimonio = async (req, res) => {
     const connection = await getConnection();
     const foundTestimonio = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (foundTestimonio.length > 0) {
-      deleteOneFile(foundAlianza[0].imagen);
+      deleteOneFile(foundTestimonio[0].imagen);
     }
     const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
     res.json({ body: result });
