@@ -56,7 +56,10 @@ app.set('port', config.app.port)
 const corsOptions = {
   origin: config.app.clientUrl, optionsSuccessStatus: 200
 }
-app.use(cors())
+//Cors
+app.use(cors({
+  origin: '*'
+}));
 
 //Middlewares
 app.use(bodyParser.json())

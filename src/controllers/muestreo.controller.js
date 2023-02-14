@@ -1,3 +1,4 @@
+import { Result } from 'express-validator';
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
@@ -26,8 +27,10 @@ const _TABLA19 = "tmunay_ods";
 const _TABLA20 = "tmunay_areas";
 const _TABLA21 = "tmunay_especialidad";
 const _TABLA22 = "tmunay_criterios";
-
 const _TABLA23 = "emprendimiento_modal";
+const _TABLA24 = "criterios_emprendimientos";
+const _TABLA25 = "emprendimientos_ods";
+const _TABLA26 = "tmunay_comentarios";
 
 
 
@@ -67,7 +70,7 @@ const getSobreMunay = async (req, res) => {
     try {
       const connection = await getConnection()
             
-      let sql2 = `SELECT nombre,testimonio,imagen FROM ${_TABLA6}`
+      let sql2 = `SELECT concat(nombre,' ', apellidos )  as  nombre ,testimonio,imagen FROM ${_TABLA6}`
       const testimonio = await connection.query(sql2)
 
       //Obteniendo 
@@ -409,17 +412,57 @@ const getDetalleEmprendimiento = async (req, res) => {
     const { id } = req.params;
     const enlace = "https://www.soymunay.org/emprendimientos/";
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA23} where estado = '1'`);
-    const foundEmprendimientosWithImages = [...result].map((item) => {
+    
+    //Emprendimiento 
+    let sql1 = `SELECT A.id, A.logo, A.emprendimiento, A.nombreRepr, A.cargoRepresentante, 
+                A.emailRepresentante, A.problema, A.explicacionSolucion, A.mision, A.motivacion, A.competidores, A.clientes, A.propuestaValor,
+                case  when A.coFundadores >= 1  and A.fundadores >= A.coFundadores then  (100 - ((100/A.fundadores)*(A.fundadores-A.coFundadores))) else 0 end  as porcentajeCofundadores,
+                A.mujeresEmpleadas    
+                FROM ${_TABLA7} A  WHERE A.id = ?`;
+    let result1 = await connection.query(sql1, id);
+    const foundEmprendimientosWithImages = [...result1].map((item) => {
       return { ...item, file: getOneFile(item.logo) };
     });
-    foundEmprendimientosWithImages.link = enlace.concat(foundEmprendimientosWithImages.link);
-    res.json({ body: foundEmprendimientosWithImages });
+    
+    //Criterio Enfoque - Emprendimiento  
+   
+    let sql2 = `SELECT A.id, A.imagen, A.imagenEN, B.emprendimiento_id
+                FROM ${_TABLA22} A
+                INNER JOIN ${_TABLA24} B ON A.id = B.criterios_id
+                WHERE B.emprendimiento_id = ?`;
+    
+    let result2 = await connection.query(sql2, id);
+    const foundCriterioWithImages = [...result2].map((item) => {
+      return { ...item, fileImagen: getOneFile(item.imagen), fileImagenEN: getOneFile(item.imagenEN) };
+    });
+  
+     //Ods - Emprendimientos 
+     let sql3 = `SELECT A.id, A.imagen, A.imagenEN, B.emprendimiento_id
+                 FROM ${_TABLA19} A
+                 INNER JOIN ${_TABLA25} B ON A.id = B.ods_id
+                 WHERE B.emprendimiento_id = ?`;
+     let result3 = await connection.query(sql3, id);
+     const foundOdsWithImages = [...result3].map((item) => {
+      return { ...item, fileImagen: getOneFile(item.imagen), fileImagenEN: getOneFile(item.imagenEN) };
+    });
+
+    //Comentario - Emprendimiento 
+    let sql4 = `SELECT A.id, A.comentario, B.nombre 
+                FROM  ${_TABLA26} A 
+                INNER JOIN ${_TABLA5} B ON A.user_id = B.id
+                WHERE A.emprendimientos_id = ?`;
+    let result4 = await connection.query(sql4, id);
+    const comentario = result4;
+
+    const resultF = {'emprendimiento':foundEmprendimientosWithImages, 'criterio':foundCriterioWithImages, 'ods': foundOdsWithImages, 'comentario': comentario};
+    res.json({ body: resultF });
   } catch (error) {
     res.status(500);
     res.json(error.message);
   }
 }
+
+//Muestreo Mentores [Solicita tu mentoria]
 
 
 
@@ -446,4 +489,6 @@ export const methods = {
   getMuestreoColaboradores,
   getMuestreoAlianzas,
   getModalEmprendimientos,
+  getDetalleEmprendimiento,
+
  };
