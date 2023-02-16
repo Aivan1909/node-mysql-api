@@ -81,15 +81,15 @@ app.use("/api/fases", faseRoutes)
 app.use("/api/badges", badgeRoutes)
 app.use("/api/departamento", dptoRoutes)
 app.use("/api/figuras", figuraRoutes)
-app.use("/api/sectores", sectorRoutes )
-app.use("/api/medios",medioRoutes)
-app.use("/api/suscripciones",suscripcionRoutes)
-app.use("/api/visibilidad",visibilidadRoutes)
+app.use("/api/sectores", sectorRoutes)
+app.use("/api/medios", medioRoutes)
+app.use("/api/suscripciones", suscripcionRoutes)
+app.use("/api/visibilidad", visibilidadRoutes)
 app.use("/api/plataformas", plataformaRoutes)
 app.use("/api/publicidades", publicidadRoutes)
 app.use("/api/planes", planRoutes)
-app.use("/api/roles",rolRoutes)
-app.use("/api/emprendimiento",emprendimientoRoutes)
+app.use("/api/roles", rolRoutes)
+app.use("/api/emprendimiento", emprendimientoRoutes)
 
 // Creacion de tabla mentores 
 app.use("/api/mentores", mentorRoutes)
@@ -105,7 +105,7 @@ app.use("/api/especialidades", especialidadRoutes)
 
 
 //muestreo 
-app.use("/api/muestreo",muestreoRoutes)
+app.use("/api/muestreo", muestreoRoutes)
 
 //-------------------------------------------------------------------------------------------
 
