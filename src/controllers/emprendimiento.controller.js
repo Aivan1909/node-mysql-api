@@ -60,6 +60,8 @@ const getEmprendimientos = async (req, res) => {
   }
 };
 
+
+
 const getEmprendimiento = async (req, res) => {
   try {
     const { id } = req.params;
@@ -111,6 +113,9 @@ const deleteEmprendimiento = async (req, res) => {
     res.json(error.message);
   }
 };
+
+
+
 
 export const methods = {
   addEmprendimiento,

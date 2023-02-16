@@ -1,15 +1,18 @@
 import { Router } from 'express';
 import { methods as criterioController } from './../controllers/criterio.controller';
-const authenticate = require('./../middleware/authenticate');
-const { isImage } = require('./../middleware/upload');
-import multer from 'multer';
+import multer from 'multer'
+const authenticate = require('./../middleware/authenticate')
+const { uploadImg } = require('./../middleware/upload');
 
 const router = Router()
 
-router.post('/', multer().single('imagen'), isImage, criterioController.addCriterios) //authenticate
+router.post('/',  multer().any(),criterioController.addCriterios) //authenticate
 router.get('/', criterioController.getCriterios)
+router.get('/withoutimages', criterioController.getCriteriosWithoutImages)
 router.get('/:id', criterioController.getCriterio)
-router.put('/:id', multer().single('imagen'), isImage, criterioController.updateCriterio)
+router.put('/:id', multer().any(), criterioController.updateCriterio)
 router.delete('/:id', criterioController.deleteCriterio)
 
 export default router;
+
+//router.post('/', multer().any(), odsController.addOdss) //authenticate

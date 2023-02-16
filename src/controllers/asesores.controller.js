@@ -53,11 +53,11 @@ const updateAsesor = async (req, res) => {
         const { id } = req.params;
         const { nombres,apellidos,cargo,redSocial, usuarioModificacion } = req.body;
         if (nombres === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const asesor = { nombre, apellidos, cargo, redSocial, usuarioModificacion };
+        const asesor = { nombres, apellidos, cargo, redSocial, usuarioModificacion };
         asesor.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
         await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [asesor, id]);
-        const foundAlianza = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        const foundAsesor = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
         if (req.file) {
             updateOneFile({ pathFile: foundAsesor[0].imagen, file: req.file });
         }

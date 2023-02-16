@@ -4,6 +4,8 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_especialidad';
+const _TABLA1 = 'tmunay_areas';
+
 
 const addEspecialidades = async (req, res) => {
   try {
@@ -24,7 +26,9 @@ const addEspecialidades = async (req, res) => {
 const getEspecialidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
+    const result = await connection.query(`SELECT A.*, B.id, B.nombre as nombreArea
+    FROM ${_TABLA} A,  ${_TABLA1} B
+    WHERE A.areas_id = B.id and A.estado  = '1'`);
    // const foundespecialidadsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });

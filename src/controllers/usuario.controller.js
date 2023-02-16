@@ -199,6 +199,8 @@ const deleteRegistro = async (req, res) => {
   }
 };
 
+
+
 export const methods = {
   addRegistro,
   getRegistros,
@@ -206,5 +208,5 @@ export const methods = {
   updateRegistro,
   deleteRegistro,
   login,
-  loginAdmin,
+  loginAdmin
 };

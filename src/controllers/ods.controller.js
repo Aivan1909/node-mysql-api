@@ -7,6 +7,8 @@ const _TABLA = 'tmunay_ods';
 const addOdss = async (req, res) => {
   try {
     const Ods = req.body;
+    Ods.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    Ods.estado = 1;
     const connection = await getConnection();
     const objImages = {};
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, Ods);
