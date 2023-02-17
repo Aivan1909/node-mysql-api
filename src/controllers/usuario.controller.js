@@ -233,6 +233,25 @@ const actualizaRoles = async (req, res) => {
   }
 }
 
+const cambiarEstado = async (req, res) => {
+  try {
+    const { id_user } = req.params
+    const { estado } = req.body
+    const connection = await getConnection();
+
+    const result = connection.query(
+      `UPDATE ${_TABLA} SET estado=? where id=?`,
+      [estado, id_user]
+    );
+
+    res.json({ body: result })
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+}
+
 export const methods = {
   addRegistro,
   getRegistros,
@@ -241,5 +260,6 @@ export const methods = {
   deleteRegistro,
   login,
   loginAdmin,
-  actualizaRoles
+  actualizaRoles,
+  cambiarEstado
 };
