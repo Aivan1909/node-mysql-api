@@ -5,15 +5,15 @@ const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_areas';
 
+
 const addAreas = async (req, res) => {
   try {
+
     const area = req.body;
     area.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     area.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, area);
-    //const path = SaveOneFile({ mainFolder: 'area', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
