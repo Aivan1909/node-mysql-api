@@ -28,7 +28,7 @@ router.get('/muestreoAlianza', muestreoController.getMuestreoAlianzas)
 router.get('/muestreoModalEmprendimiento', muestreoController.getModalEmprendimientos)
 router.get('/muestreoDetalleEmprendimiento/:id', muestreoController.getDetalleEmprendimiento)
 router.get('/muestreoMentores',muestreoController.getNuestrosMentores)
-
+router.get('/conoceMentores', muestreoController.getConoceMentores)
 
 
 
