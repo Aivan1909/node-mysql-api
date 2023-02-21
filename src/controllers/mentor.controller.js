@@ -6,6 +6,7 @@ const PUBLIC_URL = process.env.PUBLIC_URL;
 const _TABLA = 'tmunay_mentores';
 const _TABLA1 = 'horario_mentor';
 const _TABLA2 = 'area_mentor';
+const _TABLA3 = 'especialidad_mentor';
 
 
 
@@ -17,6 +18,9 @@ const addMentores = async (req, res) => {
     //AreaMentor
     const bkArea = req.body.area
     delete req.body.area
+
+    const bkEspecialidad = req.body.especialidad
+    delete req.body.especialidad
 
     const mentor = req.body;
     mentor.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
@@ -42,6 +46,16 @@ const addMentores = async (req, res) => {
       //console.log("IDS->externos ->" , idExternaHorario)
       connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaArea);
     });
+
+    //Insertando  el id Relacional Horario
+    await bkEspecialidad.forEach (element => {
+    const  idExternaEspecialidad  = {
+        mentor_id: insertId,
+        especialidad_id: element
+        } ;
+        //console.log("IDS->externos ->" , idExternaHorario)
+        connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaEspecialidad);
+     });
 
     res.json({ body: result });
   } catch (error) {
