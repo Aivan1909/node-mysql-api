@@ -5,19 +5,39 @@ const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_emprendimientos';
 const _TABLA1 = 'emprendimientos_ods';
+const _TABLA2 = 'emprendimientos_sector';
+const _TABLA3 = 'criterios_emprendimientos';
+const _TABLA4 = 'areas_emprendimientos';
+const _TABLA5 = 'emprendimientos_medios';
+const _TABLA6 = 'emprendimiento_suscripcion';
+const _TABLA7 = 'emprendimiento_visibilidad';
+
 const addEmprendimiento = async (req, res) => {
   try {
-
-    //Obteniendo las relaciones de las tablas relacionadas 
-    const bkReferencia = req.body.referencia
-    delete req.body.referencia
-    const bkSectores = req.body.sectores
-    delete req.body.sectores
-    console.log(req.body)
+    //Obtencion de claves foraneas o externas
     //ODS 
     let bkOds = req.body.ods;
-    console.log(" ODS-> 1",bkOds)
     delete req.body.ods
+    //Sectores
+    let bkSectores = req.body.sectores
+    delete req.body.sectores
+    //Criterios
+    let bkCriterios = req.body.criterios
+    delete req.body.criterios
+    //Areas
+    let bkAreas = req.body.areas
+    delete req.body.areas
+    //Medios - > [Referencia]
+    const bkMedios = req.body.medios
+    delete req.body.medios
+    //Suscripcion 
+    const bkSuscripcion = req.body.suscripcion
+    delete req.body.suscripcion
+    //Visibilidad 
+    const bkVisibilidad = req.body.visibilidad
+    delete req.body.visibilidad
+
+    
 
     const Emprendimiento = req.body;
     Emprendimiento.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
@@ -43,18 +63,80 @@ const addEmprendimiento = async (req, res) => {
     ]);
     //Insercion de tablas relacionadas ODS 
     //Constante que recata el ID 
-    console.log(result)
+    //console.log(result)
     const { insertId} =  await result;
 
-   
+    //Generando  el  codigo Emprendimeinto
+    let cod = insertId.toString();
+    let codigo = 'D-'.concat(cod.padStart(7,0)) 
+    await connection.query(`UPDATE ${_TABLA}  SET codigo = ? WHERE id =?`,[codigo,insertId]);
+
+   //Insertando  el id Relacional ODS
     await bkOds.forEach (element => {
       const  idExternaOds  = {
         emprendimiento_id: insertId,
         ods_id: element
       } ;
-      console.log("IDS->externos ->" , idExternaOds)
+      //console.log("IDS->externos ->" , idExternaOds)
       connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaOds);
     }); 
+   //Insertando  el id Relacional Sectores
+   await bkSectores.forEach (element => {
+    const  idExternaSector  = {
+      emprendimiento_id: insertId,
+      sectores_id: element
+    } ;
+    //console.log("IDS->externos ->" , idExternaSector)
+    connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaSector);
+  }); 
+
+     //Insertando  el id Relacional Criterios 
+     await bkCriterios.forEach (element => {
+      const  idExternaCriterios  = {
+        emprendimiento_id: insertId,
+        criterios_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaCriterios)
+      connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaCriterios);
+    }); 
+
+     //Insertando  el id Relacional Areas
+     await bkAreas.forEach (element => {
+      const  idExternaAreas  = {
+        emprendimiento_id: insertId,
+        area_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaAreas)
+      connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaAreas);
+    }); 
+     //Insertando  el id Relacional Medios [Referencia]
+     await bkMedios.forEach (element => {
+      const  idExternaMedios  = {
+        emprendimiento_id: insertId,
+        medio_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaMedios)
+      connection.query(`INSERT INTO ${_TABLA5} SET ?`, idExternaMedios);
+    });
+     //Insertando  el id Relacional Suscripcion 
+     await bkSuscripcion.forEach (element => {
+      const  idExternaSuscripcion  = {
+        emprendimiento_id: insertId,
+        suscripcion_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaSuscripcion)
+      connection.query(`INSERT INTO ${_TABLA6} SET ?`, idExternaSuscripcion);
+    });
+     //Insertando  el id Relacional Visibilidad
+     await bkVisibilidad.forEach (element => {
+      const  idExternaVisibilidad  = {
+        emprendimiento_id: insertId,
+        visibilidad_id: element
+      } ;
+      console.log("IDS->externos ->" , idExternaVisibilidad)
+      connection.query(`INSERT INTO ${_TABLA7} SET ?`, idExternaVisibilidad);
+    }); 
+
 
     res.json({ body: result });
   } catch (error) {
