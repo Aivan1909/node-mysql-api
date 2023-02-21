@@ -464,7 +464,7 @@ const getDetalleEmprendimiento = async (req, res) => {
 }
 
 //Muestreo Mentores [Solicita tu mentoria]
-const getNuestroMentores = async (req, res) => {
+const getNuestrosMentores = async (req, res) => {
   try {
     const connection = await getConnection();
     //Finanzas 
@@ -595,7 +595,9 @@ const getNuestroMentores = async (req, res) => {
     res.status(500);
     res.json(error.message);
   }
-} 
+}
+
+
 
 
 
@@ -624,6 +626,6 @@ export const methods = {
   getMuestreoAlianzas,
   getModalEmprendimientos,
   getDetalleEmprendimiento,
-  getNuestroMentores
+  getNuestrosMentores
 
  };
