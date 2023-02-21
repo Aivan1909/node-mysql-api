@@ -4,15 +4,21 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_emprendimientos';
+const _TABLA1 = 'emprendimientos_ods';
 const addEmprendimiento = async (req, res) => {
   try {
+
+    //Obteniendo las relaciones de las tablas relacionadas 
     const bkReferencia = req.body.referencia
     delete req.body.referencia
     const bkSectores = req.body.sectores
     delete req.body.sectores
-
-
     console.log(req.body)
+    //ODS 
+    let bkOds = req.body.ods;
+    console.log(" ODS-> 1",bkOds)
+    delete req.body.ods
+
     const Emprendimiento = req.body;
     Emprendimiento.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     Emprendimiento.estado = 1;
@@ -35,8 +41,20 @@ const addEmprendimiento = async (req, res) => {
 
       result.insertId,
     ]);
+    //Insercion de tablas relacionadas ODS 
+    //Constante que recata el ID 
+    console.log(result)
+    const { insertId} =  await result;
 
-  
+   
+    await bkOds.forEach (element => {
+      const  idExternaOds  = {
+        emprendimiento_id: insertId,
+        ods_id: element
+      } ;
+      console.log("IDS->externos ->" , idExternaOds)
+      connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaOds);
+    }); 
 
     res.json({ body: result });
   } catch (error) {
