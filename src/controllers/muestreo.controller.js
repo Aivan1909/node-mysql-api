@@ -32,6 +32,7 @@ const _TABLA24 = "criterios_emprendimientos";
 const _TABLA25 = "emprendimientos_ods";
 const _TABLA26 = "tmunay_comentarios";
 const _TABLA27 = "area_mentor";
+const _TABLA28 = "especialidad_mentor";
 
 
 
@@ -597,6 +598,34 @@ const getNuestrosMentores = async (req, res) => {
   }
 }
 
+//Muestreo Mentores [Conoce a nuestros mentores]
+const getConoceMentores = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+
+    let sql1 = `SELECT B.id, concat(B.nombre,' ',B.apellidos) as nombre , group_concat(D.nombre) as especialidad, B.avatar
+                FROM ${_TABLA12} A
+                INNER JOIN ${_TABLA5} B ON A.user_id = B.id 
+                INNER JOIN ${_TABLA28} C ON A.id = C.mentor_id 
+                INNER JOIN ${_TABLA21}  D ON D.id = C.especialidad_id
+                GROUP  BY B.id 
+                ORDER BY especialidad DESC`
+    let result = await connection.query(sql1);
+    const foundMentoresWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.avatar) };
+    });
+
+     
+
+    const resultF = {'mentores':foundMentoresWithImages};
+    res.json({ body: resultF });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
 
 
 
@@ -626,6 +655,7 @@ export const methods = {
   getMuestreoAlianzas,
   getModalEmprendimientos,
   getDetalleEmprendimiento,
-  getNuestrosMentores
+  getNuestrosMentores,
+  getConoceMentores
 
  };
