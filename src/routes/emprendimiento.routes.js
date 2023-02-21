@@ -11,5 +11,6 @@ router.get('/', emprendimientoController.getEmprendimientos);
 router.get('/:id', emprendimientoController.getEmprendimiento);
 router.put('/:id', multer().any(), emprendimientoController.updateEmprendimiento);
 router.delete('/:id', emprendimientoController.deleteEmprendimiento);
+router.put('/cambiarEstado/:id', emprendimientoController.cambiarEstado);
 
-export default router;
+export default router; 

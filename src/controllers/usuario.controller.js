@@ -1,9 +1,11 @@
+import { json } from "body-parser";
 import { getConnection } from "../database/database";
 
 const bcrypt = require("bcrypt");
 const { getToken, getTokenData } = require("../bin/jwt");
 const _TABLA = "users";
 const _TABLA1 = "roless";
+const _TABLA2 = "tmunay_rol";
 
 const addRegistro = async (req, res) => {
   try {
@@ -132,7 +134,10 @@ const loginAdmin = async (req, res) => {
 const getRegistros = async (req, res) => {
   try {
     const connection = await getConnection()
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`)
+    const result = await connection.query(`SELECT xu.*, xr.roles, xtr.roles_desc 
+    FROM ${_TABLA} xu, (SELECT user_id, GROUP_CONCAT(DISTINCT rol_id) as roles FROM ${_TABLA1}) as xr, 
+    (select r.user_id, GROUP_CONCAT(DISTINCT tr.nombre) as roles_desc from ${_TABLA} u, ${_TABLA1} r, ${_TABLA2} tr 
+    WHERE u.id=r.user_id and r.rol_id=tr.id) as xtr where xu.id=xr.user_id and xr.user_id=xtr.user_id;`)
     res.json({ body: result })
   } catch (error) {
     console.log(error)
@@ -195,7 +200,53 @@ const deleteRegistro = async (req, res) => {
   }
 };
 
+const actualizaRoles = async (req, res) => {
+  try {
+    const { id_user, agregar, eliminar } = req.body
+    const connection = await getConnection();
+    let result
+    if (agregar.length > 0) {
+      await agregar.forEach(element => {
+        result = connection.query(
+          `INSERT INTO ${_TABLA1} SET user_id=? and rol_id=?`,
+          [id_user, element]
+        );
+      });
+    }
+    if (eliminar.length > 0) {
+      await eliminar.forEach(element => {
+        result = connection.query(
+          `DELETE FROM ${_TABLA1} WHERE user_id=? and rol_id=?`,
+          [id_user, element]
+        );
+      });
+    }
+    res.json({ body: result })
 
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+}
+
+const cambiarEstado = async (req, res) => {
+  try {
+    const { id_user } = req.params
+    const { estado } = req.body
+    const connection = await getConnection();
+
+    const result = connection.query(
+      `UPDATE ${_TABLA} SET estado=? where id=?`,
+      [estado, id_user]
+    );
+
+    res.json({ body: result })
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+}
 
 export const methods = {
   addRegistro,
@@ -204,5 +255,7 @@ export const methods = {
   updateRegistro,
   deleteRegistro,
   login,
-  loginAdmin
+  loginAdmin,
+  actualizaRoles,
+  cambiarEstado
 };

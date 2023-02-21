@@ -82,10 +82,10 @@ const getSobreMunay = async (req, res) => {
       let sql3 = `SELECT 'registrados' as id ,count(*) as cantidad FROM ${_TABLA7}`
       const emprendimiento = await connection.query(sql3)
       
-      let sql4 = `SELECT 'horas' as id, sum(duracion) as cantidad FROM ${_TABLA8}`
+      let sql4 = `SELECT 'horas' as id, ifnull(sum(duracion), 0) as cantidad FROM ${_TABLA8}`
       const mentoria = await connection.query(sql4)
       
-      let sql5 = `SELECT 'monto' as id, sum(monto) as cantidad, 'USD' as medida FROM ${_TABLA9}`
+      let sql5 = `SELECT 'monto' as id, ifnull(sum(monto), 0) as cantidad, 'USD' as medida FROM ${_TABLA9}`
       const campana= await connection.query(sql5)
       
       let sql6 = `SELECT TOP 12 * as cantidad FROM ${_TABLA7} ORDER BY fechaCreacion DESC` 
