@@ -626,6 +626,164 @@ const getConoceMentores = async (req, res) => {
   }
 }
 
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Finanzas] 
+const getMentoriaFinazas = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '1'`
+    let result = await connection.query(sql1);
+    const foundFinanzasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+    res.json({ body: foundFinanzasWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Impacto] 
+const getMentoriaImpacto = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '2'`
+    let result = await connection.query(sql1);
+    const foundImpactoWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundImpactoWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Impacto] 
+const getMentoriaLegal = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '3'`
+    let result = await connection.query(sql1);
+    const foundLegalWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundLegalWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Marketing] 
+const getMentoriaMarketing = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '4'`
+    let result = await connection.query(sql1);
+    const foundMarketingWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundMarketingWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Gestion Empresarial] 
+const getMentoriaGestion = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '5'`
+    let result = await connection.query(sql1);
+    const foundGestionWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundGestionWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Postulaciones] 
+const getMentoriaPostulaciones = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '6'`
+    let result = await connection.query(sql1);
+    const foundPostulacionesWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundPostulacionesWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Sistemas] 
+const getMentoriaSistemas = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '7'`
+    let result = await connection.query(sql1);
+    const foundSistemasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundSistemasWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Sistemas] 
+const getMentoriaEmpoderamiento = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '8'`
+    let result = await connection.query(sql1);
+    const foundEmpoderamientoWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundEmpoderamientoWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
 
 
 
@@ -656,6 +814,15 @@ export const methods = {
   getModalEmprendimientos,
   getDetalleEmprendimiento,
   getNuestrosMentores,
-  getConoceMentores
+  getConoceMentores,
+  getMentoriaFinazas,
+  getMentoriaImpacto,
+  getMentoriaLegal,
+  getMentoriaMarketing,
+  getMentoriaGestion,
+  getMentoriaPostulaciones,
+  getMentoriaSistemas,
+  getMentoriaEmpoderamiento
+
 
  };
