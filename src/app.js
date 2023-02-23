@@ -19,6 +19,7 @@ import criterioRoutes from './routes/criterio.routes'
 import faseRoutes from './routes/fases.routes'
 import badgeRoutes from './routes/badge.routes'
 import dptoRoutes from './routes/departamento.routes'
+import dashboardRoutes from './routes/dashboard.routes'
 import figuraRoutes from './routes/figura.routes'
 import sectorRoutes from './routes/sector.routes'
 import medioRoutes from './routes/medio.routes'
@@ -80,26 +81,27 @@ app.use("/api/badges", badgeRoutes)
 app.use("/api/colaboradores", colaboradorRoutes)
 app.use("/api/criterios", criterioRoutes)
 app.use("/api/departamento", dptoRoutes)
+app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/especialidades", especialidadRoutes)
-app.use("/api/emprendimiento",emprendimientoRoutes)
+app.use("/api/emprendimiento", emprendimientoRoutes)
 app.use("/api/fases", faseRoutes)
 app.use("/api/figuras", figuraRoutes)
 app.use("/api/horarios", horarioRoutes)
-app.use("/api/medios",medioRoutes)
+app.use("/api/medios", medioRoutes)
 app.use("/api/mentores", mentorRoutes)
 app.use("/api/mentorias", mentoriaRoutes)
-app.use("/api/muestreo",muestreoRoutes)
+app.use("/api/muestreo", muestreoRoutes)
 app.use("/api/ods", odsRoutes)
 app.use("/api/planes", planRoutes)
 app.use("/api/plataformas", plataformaRoutes)
 app.use("/api/publicidades", publicidadRoutes)
 app.use("/api/publicacion", publicacionRoutes)
-app.use("/api/roles",rolRoutes)
-app.use("/api/sector", sectorRoutes )
-app.use("/api/suscripciones",suscripcionRoutes)
+app.use("/api/roles", rolRoutes)
+app.use("/api/sector", sectorRoutes)
+app.use("/api/suscripciones", suscripcionRoutes)
 app.use("/api/testimonios", testimonioRoutes)
 app.use("/api/trayectoria", trayectoriaRoutes)
-app.use("/api/visibilidad",visibilidadRoutes)
+app.use("/api/visibilidad", visibilidadRoutes)
 app.use("/api/usuarios", usuarioRoutes)
 
 

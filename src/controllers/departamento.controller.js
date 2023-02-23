@@ -23,15 +23,10 @@ const getdptos = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-    
-    /*
-    const founddptosWithImages = [...result].map((item) => {
-      return { ...item, file: getOneFile(item.imagen) };
-    });
-    */
 
     res.json({ body: result });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
