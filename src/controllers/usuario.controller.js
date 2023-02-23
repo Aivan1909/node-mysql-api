@@ -12,7 +12,6 @@ const addRegistro = async (req, res) => {
     console.log(req.body);
     const dataAdd = req.body;
     const { email, password } = dataAdd;
-
     const token = await getToken({ email });
 
     if (password != null) {
@@ -35,10 +34,7 @@ const addRegistro = async (req, res) => {
             rol_id: 1,
           };
 
-          result = await connection.query(
-            `INSERT INTO ${_TABLA1} SET ?`,
-            relacionRol
-          );
+          result = await connection.query(`INSERT INTO ${_TABLA1} SET ?`, relacionRol);
           //Insertando  a la tabla relacional 
 
           result = await connection.query(

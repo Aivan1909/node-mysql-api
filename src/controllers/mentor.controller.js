@@ -4,15 +4,59 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_mentores';
+const _TABLA1 = 'horario_mentor';
+const _TABLA2 = 'area_mentor';
+const _TABLA3 = 'especialidad_mentor';
+
+
 
 const addMentores = async (req, res) => {
   try {
+    //Horario
+    const bkHorario = req.body.horario
+    delete req.body.horario
+    //AreaMentor
+    const bkArea = req.body.area
+    delete req.body.area
+
+    const bkEspecialidad = req.body.especialidad
+    delete req.body.especialidad
+
     const mentor = req.body;
     mentor.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentor);
-    //const path = SaveOneFile({ mainFolder: 'mentor', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+
+    const { insertId} =  await result;
+    //Insertando  el id Relacional Horario
+    await bkHorario.forEach (element => {
+      const  idExternaHorario  = {
+        mentores_id: insertId,
+        horarios_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaHorario)
+      connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaHorario);
+    });
+      //Insertando  el id Relacional Horario
+    await bkArea.forEach (element => {
+      const  idExternaArea  = {
+        mentor_id: insertId,
+        area_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaHorario)
+      connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaArea);
+    });
+
+    //Insertando  el id Relacional Horario
+    await bkEspecialidad.forEach (element => {
+    const  idExternaEspecialidad  = {
+        mentor_id: insertId,
+        especialidad_id: element
+        } ;
+        //console.log("IDS->externos ->" , idExternaHorario)
+        connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaEspecialidad);
+     });
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -24,8 +68,6 @@ const getMentores = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-   // const foundmentorsWithImages = [...result].map((item) => {
-   // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
   } catch (error) {
     res.status(500);

@@ -3,6 +3,8 @@ import morgan from 'morgan'
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
+const https =  require('https')
+const fs =  require('fs')
 
 
 // Routes
@@ -36,6 +38,7 @@ import areaRoutes from './routes/area.routes'
 import especialidadRoutes from './routes/especialidad.routes'
 import emprendimientoRoutes from './routes/emprendimiento.routes'
 import publicacionRoutes from './routes/publicacion.routes'
+import { Http2ServerRequest } from 'http2'
 
 
 
@@ -58,9 +61,23 @@ const corsOptions = {
   origin: config.app.clientUrl, optionsSuccessStatus: 200
 }
 //Cors
-app.use(cors({
-  origin: '*'
-}));
+app.use(cors());
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", '*');
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
+    next();
+});
+
+//SsL
+//https.createServer({
+//  cert: fs.readFileSync('mi_certificado.crt'),
+//  key: fs.readFileSync('mi_certificado.key')
+//}, app).listen(PUERTO,function(){
+//  console.log("Server https corriendo en el  puerto")
+//});
 
 //Middlewares
 app.use(bodyParser.json())

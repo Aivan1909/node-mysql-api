@@ -12,8 +12,6 @@ const addHorarios = async (req, res) => {
     horario.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, horario);
-    //const path = SaveOneFile({ mainFolder: 'horario', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500);

@@ -27,6 +27,33 @@ router.get('/muestreoColaborador', muestreoController.getMuestreoColaboradores)
 router.get('/muestreoAlianza', muestreoController.getMuestreoAlianzas)
 router.get('/muestreoModalEmprendimiento', muestreoController.getModalEmprendimientos)
 router.get('/muestreoDetalleEmprendimiento/:id', muestreoController.getDetalleEmprendimiento)
+router.get('/muestreoMentores',muestreoController.getNuestrosMentores)
+router.get('/conoceMentores', muestreoController.getConoceMentores)
+router.get('/finazas', muestreoController.getMentoriaFinazas)
+router.get('/impacto', muestreoController.getMentoriaImpacto)
+router.get('/legal', muestreoController.getMentoriaLegal) 
+router.get('/marketing', muestreoController.getMentoriaMarketing)
+router.get('/gestion', muestreoController.getMentoriaGestion)
+router.get('/postulacion', muestreoController.getMentoriaPostulaciones)
+router.get('/sistemas', muestreoController.getMentoriaSistemas)
+router.get('/empoderamiento', muestreoController.getMentoriaEmpoderamiento)
+
+
+
+
+
+
+
+
+
+/* getMentoriaFinazas,
+getMentoriaLegal,
+getMentoriaMarketing,
+getMentoriaGestion,
+getMentoriaPostulaciones,
+getMentoriaSistemas,
+getMentoriaEmpoderamiento */
+
 
 
 

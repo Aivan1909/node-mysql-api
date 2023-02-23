@@ -31,6 +31,8 @@ const _TABLA23 = "emprendimiento_modal";
 const _TABLA24 = "criterios_emprendimientos";
 const _TABLA25 = "emprendimientos_ods";
 const _TABLA26 = "tmunay_comentarios";
+const _TABLA27 = "area_mentor";
+const _TABLA28 = "especialidad_mentor";
 
 
 
@@ -463,6 +465,327 @@ const getDetalleEmprendimiento = async (req, res) => {
 }
 
 //Muestreo Mentores [Solicita tu mentoria]
+const getNuestrosMentores = async (req, res) => {
+  try {
+    const connection = await getConnection();
+    //Finanzas 
+    let sql1 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =1`;
+    let result = await connection.query(sql1);
+
+    let sql2 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+    INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+    INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+    INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+    WHERE A.estado = '1' and D.id = 1;`
+    let result1 = await connection.query(sql2);
+    const foundFinanzasWithImages = [...result1].map((item) => {
+      return { ...item, file: getOneFile(item.avatar) };
+    });
+
+     //Impacto 
+     let sql3 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =2`;
+     let result2 = await connection.query(sql3);
+ 
+     let sql4 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+     INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+     INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+     INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+     WHERE A.estado = '1' and D.id = 2;`
+     let result3 = await connection.query(sql4);
+     const foundImpactoWithImages = [...result3].map((item) => {
+       return { ...item, file: getOneFile(item.avatar) };
+     });
+
+      //Legal 
+      let sql5 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =3`;
+      let result4 = await connection.query(sql5);
+  
+      let sql6 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 3;`
+      let result5 = await connection.query(sql6);
+      const foundLegalWithImages = [...result5].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      });
+      
+      //Marketing
+      let sql7 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =4`;
+      let result6 = await connection.query(sql7);
+  
+      let sql8 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 4;`
+      let result7 = await connection.query(sql8);
+      const foundMarketingWithImages = [...result7].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      });
+
+      //Gestion Empresarial [planificacion]
+      let sql9 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =5`;
+      let result8 = await connection.query(sql9);
+  
+      let sql10 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 5;`
+      let result9 = await connection.query(sql10);
+      const foundGestionWithImages = [...result9].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      });
+
+      //Postulacion
+      let sql11 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =6`;
+      let result10 = await connection.query(sql11);
+  
+      let sql12 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 6;`
+      let result11 = await connection.query(sql12);
+      const foundPostulacionWithImages = [...result11].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      });  
+
+      //Sistemas
+      let sql13 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =7`;
+      let result12 = await connection.query(sql13);
+  
+      let sql14 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 7;`
+      let result13 = await connection.query(sql14);
+      const foundSistemasWithImages = [...result13].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      }); 
+  
+      //Sistemas
+      let sql15 = `SELECT id,areas_id,nombre FROM ${_TABLA21}  where areas_id =8`;
+      let result14 = await connection.query(sql15);
+  
+      let sql16 = `SELECT C.id, C.avatar FROM ${_TABLA12} A
+      INNER JOIN ${_TABLA27} B ON A.id = B.area_id
+      INNER JOIN ${_TABLA10} C ON A.user_id = C.id 
+      INNER JOIN ${_TABLA20} D ON B.area_id = D.id
+      WHERE A.estado = '1' and D.id = 8;`
+      let result15 = await connection.query(sql16);
+      const foundEmpoderamientoWithImages = [...result15].map((item) => {
+        return { ...item, file: getOneFile(item.avatar) };
+      }); 
+
+
+    const resultF = {'finanzas':{'lista':result,'mentores':foundFinanzasWithImages},
+                     'impacto':{'lista':result2,'mentores':foundImpactoWithImages},
+                     'legal':{'lista':result4,'mentores':foundLegalWithImages},
+                     'marketing':{'lista':result6,'mentores':foundMarketingWithImages},
+                     'planificacion':{'lista':result8,'mentores':foundGestionWithImages},
+                     'postulaciones':{'lista':result10,'mentores':foundPostulacionWithImages},
+                     'sistemas':{'lista':result12,'mentores':foundSistemasWithImages},
+                     'empoderamiento':{'lista':result14,'mentores':foundEmpoderamientoWithImages},
+                     
+                    };
+    res.json({ body: resultF });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo Mentores [Conoce a nuestros mentores]
+const getConoceMentores = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+
+    let sql1 = `SELECT B.id, concat(B.nombre,' ',B.apellidos) as nombre , group_concat(D.nombre) as especialidad, B.avatar
+                FROM ${_TABLA12} A
+                INNER JOIN ${_TABLA5} B ON A.user_id = B.id 
+                INNER JOIN ${_TABLA28} C ON A.id = C.mentor_id 
+                INNER JOIN ${_TABLA21}  D ON D.id = C.especialidad_id
+                GROUP  BY B.id 
+                ORDER BY especialidad DESC`
+    let result = await connection.query(sql1);
+    const foundMentoresWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.avatar) };
+    });
+
+     
+
+    const resultF = {'mentores':foundMentoresWithImages};
+    res.json({ body: resultF });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Finanzas] 
+const getMentoriaFinazas = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '1'`
+    let result = await connection.query(sql1);
+    const foundFinanzasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+    res.json({ body: foundFinanzasWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Impacto] 
+const getMentoriaImpacto = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '2'`
+    let result = await connection.query(sql1);
+    const foundImpactoWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundImpactoWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Impacto] 
+const getMentoriaLegal = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '3'`
+    let result = await connection.query(sql1);
+    const foundLegalWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundLegalWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Marketing] 
+const getMentoriaMarketing = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '4'`
+    let result = await connection.query(sql1);
+    const foundMarketingWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundMarketingWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Gestion Empresarial] 
+const getMentoriaGestion = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '5'`
+    let result = await connection.query(sql1);
+    const foundGestionWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundGestionWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Postulaciones] 
+const getMentoriaPostulaciones = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '6'`
+    let result = await connection.query(sql1);
+    const foundPostulacionesWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundPostulacionesWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Sistemas] 
+const getMentoriaSistemas = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '7'`
+    let result = await connection.query(sql1);
+    const foundSistemasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundSistemasWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+//Muestreo para los botones de Mentorias Especializadas [Mentoria Sistemas] 
+const getMentoriaEmpoderamiento = async (req, res) => {
+  try {
+    const connection = await getConnection();
+
+    let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
+    from  ${_TABLA20} A , ${_TABLA21} B 
+    WHERE A.id = B.areas_id AND A.id = '8'`
+    let result = await connection.query(sql1);
+    const foundEmpoderamientoWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundEmpoderamientoWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+
 
 
 
@@ -490,5 +813,16 @@ export const methods = {
   getMuestreoAlianzas,
   getModalEmprendimientos,
   getDetalleEmprendimiento,
+  getNuestrosMentores,
+  getConoceMentores,
+  getMentoriaFinazas,
+  getMentoriaImpacto,
+  getMentoriaLegal,
+  getMentoriaMarketing,
+  getMentoriaGestion,
+  getMentoriaPostulaciones,
+  getMentoriaSistemas,
+  getMentoriaEmpoderamiento
+
 
  };

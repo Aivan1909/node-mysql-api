@@ -14,8 +14,8 @@ const addEspecialidades = async (req, res) => {
     especialidad.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, especialidad);
-    //const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file });
+    await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -29,9 +29,9 @@ const getEspecialidades = async (req, res) => {
     const result = await connection.query(`SELECT A.*, B.id, B.nombre as nombreArea
     FROM ${_TABLA} A,  ${_TABLA1} B
     WHERE A.areas_id = B.id and A.estado  = '1'`);
-   // const foundespecialidadsWithImages = [...result].map((item) => {
-   // return { ...item, file: getOneFile(item.imagen) };});
-    res.json({ body: result });
+    const foundespecialidadsWithImages = [...result].map((item) => {
+    return { ...item, file: getOneFile(item.imagen) };});
+    res.json({ body: foundespecialidadsWithImages });
   } catch (error) {
     res.status(500);
     res.json(error.message);
@@ -44,7 +44,7 @@ const getEspecialidad = async (req, res) => {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
-    //const image = getOneFile(result[0].imagen);
+     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
   } catch (error) {
     res.status(500);
@@ -61,8 +61,13 @@ const updateEspecialidad = async (req, res) => {
         especialidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
         await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [especialidads, id]);
-        const foundespecialidads = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        res.json({ body: foundespecialidads[0] });
+        const foundEspecialidad = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        if (req.file) {
+            const responseUpdateImage=updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file });
+            if(responseUpdateImage)
+                await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
+        }
+        res.json({ body: foundEspecialidad[0] });
     } catch (error) {
         res.status(500);
         res.json(error.message);

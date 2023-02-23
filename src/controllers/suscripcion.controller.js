@@ -8,32 +8,28 @@ const _TABLA1 = 'plan_suscripcion';
 
 const addsuscripciones = async (req, res) => {
   try {
+    //Obtencion de claves foraneas o externas
+    //Plan
+    let bkPlan = req.body.plan;
+    delete req.body.plan
+
     const suscripcion = req.body;
     suscripcion.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     suscripcion.estado = 1;
     const connection = await getConnection();
     let  result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, suscripcion);
 
-    //insertando a la tabla Plan
-    const { insertId } = result;
-    const relacionPlan = {
-      plan_id: insertId,
-      suscripcion_id: req.plan,
-    };
-
-    result = await connection.query(
-      `INSERT INTO ${_TABLA1} SET ?`,
-      relacionPlan
-    );
-    //Insertando  a la tabla relacional 
     
-    result = await connection.query(
-      `SELECT * FROM ${_TABLA} WHERE id=?`,
-      insertId
-    );
-
-    //Insertar la relacion de emprendimeinto 
-
+    const { insertId } = await result;
+    //insertando a la tabla Plan
+    await bkPlan.forEach(element => {
+      const idExternaPlan ={
+        suscripcion_id : insertId,
+        plan_id: element
+      }
+    //console.log("IDS->externos ->" , idExternaPlan)
+    connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaPlan);
+    });
 
     res.json({ body: result });
   } catch (error) {
@@ -45,7 +41,7 @@ const addsuscripciones = async (req, res) => {
 const getsuscripciones = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where esatdo  = '1'`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
    // const foundsuscripcionsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
