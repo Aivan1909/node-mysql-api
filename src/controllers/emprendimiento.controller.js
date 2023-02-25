@@ -186,4 +186,12 @@ export const EmprendimientoController = {
             res.status(500).json({ message: 'Erro Interno', error });
         }
     },
+
+    sendEmail: async (req, res) => {
+        const { ...rest } = req.body;
+        let bodyEmail = rest.bodyEmail;
+        let remitente = rest.remitente;
+        
+        res.status(200).json({message: 'enviado', data: rest});
+    },
 };
