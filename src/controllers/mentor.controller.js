@@ -7,6 +7,7 @@ const _TABLA = 'tmunay_mentores';
 const _TABLA1 = 'horario_mentor';
 const _TABLA2 = 'area_mentor';
 const _TABLA3 = 'especialidad_mentor';
+const _TABLA4 = 'users';
 
 
 
@@ -27,35 +28,35 @@ const addMentores = async (req, res) => {
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentor);
 
-    const { insertId} =  await result;
+    const { insertId } = await result;
     //Insertando  el id Relacional Horario
-    await bkHorario.forEach (element => {
-      const  idExternaHorario  = {
+    for (let element of bkHorario) {
+      const idExternaHorario = {
         mentores_id: insertId,
         horarios_id: element
-      } ;
+      };
       //console.log("IDS->externos ->" , idExternaHorario)
-      connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaHorario);
-    });
-      //Insertando  el id Relacional Horario
-    await bkArea.forEach (element => {
-      const  idExternaArea  = {
+      await connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaHorario);
+    };
+    //Insertando  el id Relacional Horario
+    for (let element of bkArea) {
+      const idExternaArea = {
         mentor_id: insertId,
         area_id: element
-      } ;
+      };
       //console.log("IDS->externos ->" , idExternaHorario)
-      connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaArea);
-    });
+      await connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaArea);
+    };
 
     //Insertando  el id Relacional Horario
-    await bkEspecialidad.forEach (element => {
-    const  idExternaEspecialidad  = {
+    for (let element of bkArea) {
+      const idExternaEspecialidad = {
         mentor_id: insertId,
         especialidad_id: element
-        } ;
-        //console.log("IDS->externos ->" , idExternaHorario)
-        connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaEspecialidad);
-     });
+      };
+      //console.log("IDS->externos ->" , idExternaHorario)
+      await connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaEspecialidad);
+    };
 
     res.json({ body: result });
   } catch (error) {
@@ -67,7 +68,7 @@ const addMentores = async (req, res) => {
 const getMentores = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT A.*, B.nombre, B.apellidos FROM ${_TABLA} A, ${_TABLA4} B where A.user_id=B.id`);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -90,20 +91,20 @@ const getMentor = async (req, res) => {
 };
 
 const updateMentor = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { curriculum ,user_id, tipo ,usuarioModificacion } = req.body;
-        if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const mentors = { curriculum, user_id,tipo,usuarioModificacion };
-        mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-        const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [mentors, id]);
-        const foundmentors = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        res.json({ body: foundmentors[0] });
-    } catch (error) {
-        res.status(500);
-        res.json(error.message);
-    }
+  try {
+    const { id } = req.params;
+    const { curriculum, user_id, tipo, usuarioModificacion } = req.body;
+    if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const mentors = { curriculum, user_id, tipo, usuarioModificacion };
+    mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [mentors, id]);
+    const foundmentors = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    res.json({ body: foundmentors[0] });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
 };
 
 const deleteMentor = async (req, res) => {
