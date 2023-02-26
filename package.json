@@ -21,6 +21,8 @@
     "moment": "^2.29.4",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.0.1",
+    "passport": "^0.6.0",
+    "passport-google-oauth": "^2.0.0",
     "promise-mysql": "^5.2.0",
     "sequelize": "^6.28.0"
   },
