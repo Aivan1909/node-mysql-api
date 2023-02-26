@@ -8,5 +8,9 @@ module.exports = {
     database: process.env.MYSQL_DATABASE || "",
     user: process.env.MYSQL_USER || "",
     password: process.env.MYSQL_PASSWORD || ""
-  }
+  },
+  emailSendGridConfig: {
+    apiKey: process.env.API_KEY || ' ',
+    senderName: process.env.SENDER_EMAIL || ' '
+  },
 }
