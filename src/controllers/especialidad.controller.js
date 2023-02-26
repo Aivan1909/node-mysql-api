@@ -9,9 +9,12 @@ const _TABLA1 = 'tmunay_areas';
 
 const addEspecialidades = async (req, res) => {
   try {
+    let bkArea = req.body.area;
+    delete req.body.area;
     const especialidad = req.body;
     especialidad.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     especialidad.estado = 1;
+    especialidad.areas_id = bkArea;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, especialidad);
     const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file });
@@ -26,9 +29,7 @@ const addEspecialidades = async (req, res) => {
 const getEspecialidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT A.*, B.id, B.nombre as nombreArea
-    FROM ${_TABLA} A,  ${_TABLA1} B
-    WHERE A.areas_id = B.id and A.estado  = '1'`);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
     const foundespecialidadsWithImages = [...result].map((item) => {
     return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: foundespecialidadsWithImages });
