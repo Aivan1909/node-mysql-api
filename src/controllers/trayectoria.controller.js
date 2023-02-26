@@ -1,83 +1,93 @@
-import { getConnection } from '../database/database'
+import { getConnection } from '../database/database';
+import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
+const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const PUBLIC_URL  = process.env.PUBLIC_URL
-
-const _TABLA = "tmunay_trayectoria"
-const addTrayectorias = async (req, res) => {
-   //const {body ,file} = req
-   console.log(req.body)
-   try {
-    const trayectoria = req.body
-    const connection = await getConnection()
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, trayectoria)
-    console.log(result)
-    res.json({ body: result })
+const _TABLA = 'tmunay_trayectoria';
+const addTrayectoria = async (req, res) => {
+  try {
+    const trayectoria = req.body;
+    trayectoria.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    trayectoria.estado = 1;
+    const connection = await getConnection();
+    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, trayectoria);
+    const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: result.insertId, file: req.file });
+    await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    res.json({ body: result });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500);
+    res.json(error.message);
   }
-}
+};
 
 const getTrayectorias = async (req, res) => {
   try {
-    const connection = await getConnection()
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`)
-    res.json({ body: result })
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1' `);
+    const foundTrayectoriasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+    res.json({ body: foundTrayectoriasWithImages });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500);
+    res.json(error.message);
   }
-}
+};
 
 const getTrayectoria = async (req, res) => {
   try {
-    console.log(req.params)
     const { id } = req.params;
-    const connection = await getConnection()
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id)
-    res.json({ body: result[0] })
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1' `, id);
+    if (!result.length > 0) return res.status(404);
+    const image = getOneFile(result[0].imagen);
+    res.json({ body: { ...result[0], file: image } });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500);
+    res.json(error.message);
   }
-}
+};
 
 const updateTrayectoria = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, imagen, usuarioModificacion } = req.body;
-    if (nombre === undefined)
-      res.status(400).json({ message: "Bad Request" })
-
-    const trayectoria = { nombre, imagen, usuarioModificacion }
-    console.log(Trayectoria)
-    const connection = await getConnection()
-    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [trayectoria, id])
-    res.json({ body: result[0] })
+    const { nombre, usuarioModificacion } = req.body;
+    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const trayectoria = { nombre, usuarioModificacion };
+    trayectoria.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [trayectoria, id]);
+    const foundTrayectoria = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    if (req.file) {
+      updateOneFile({ pathFile: foundTrayectoria[0].imagen, file: req.file });
+    }
+    res.json({ body: foundTrayectoria[0] });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500);
+    res.json(error.message);
   }
-}
+};
 
 const deleteTrayectoria = async (req, res) => {
   try {
-    console.log(req.params)
     const { id } = req.params;
-    const connection = await getConnection()
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`,id)
-    res.json({ body: result })
+    const connection = await getConnection();
+    const foundTrayectoria = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    if (foundTrayectoria.length > 0) {
+      deleteOneFile(foundTrayectoria[0].imagen);
+    }
+    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    res.json({ body: result });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500);
+    res.json(error.message);
   }
-}
+};
 
 export const methods = {
-  addTrayectorias,
+  addTrayectoria,
   getTrayectorias,
   getTrayectoria,
   updateTrayectoria,
-  deleteTrayectoria
-}
+  deleteTrayectoria,
+};

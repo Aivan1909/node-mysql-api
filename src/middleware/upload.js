@@ -73,10 +73,9 @@ function SaveManyFiles({ mainFolder, file }) {
 @Params:
     nameFile:string
 */
-
 function getOneFile(pathFile) {
     try {
-        return fs.readFileSync(pathFile, { encoding: 'base64' });
+        return `data:image/jpeg;base64, ${fs.readFileSync(pathFile, { encoding: 'base64' })}`;
     } catch (error) {
         console.log(error);
         return 'Imagen  no Encontrada';

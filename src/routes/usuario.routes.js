@@ -6,8 +6,10 @@ const router = Router()
 router.post('/', usuarioController.addRegistro)
 router.post('/login', usuarioController.login)
 router.post('/loginAdmin', usuarioController.login)
-/*router.get('/:id', usuarioController.getAlianza)
-router.put('/:id', usuarioController.updateAlianza)
+router.get('/', usuarioController.getRegistros)
+router.post('/actualizarRoles', usuarioController.actualizaRoles)
+router.put('/cambiarEstado/:id_user', usuarioController.cambiarEstado)
+/*router.put('/:id', usuarioController.updateAlianza)
 router.delete('/:id', usuarioController.deleteAlianza) */
 
 export default router;
