@@ -53,22 +53,6 @@ function SaveOneFile({ mainFolder, idFolder, file }) {
         throw new Error(String(error));
     }
 }
-function SaveManyFiles({ mainFolder, file }) {
-    try {
-        console.log(mainFolder, file);
-        const pathFolder = `${mainFolder}`;
-        createFolder(pathFolder);
-        [...file].forEach((item) => {
-            let filename = `${Math.round(Math.random() * 99999)}-${moment().unix()}${path.extname(item.originalname)}`;
-            fs.writeFile(`uploads/${pathFolder}/${filename}`, item.buffer, 'binary', (error) => {
-                if (error) throw new Error('Error al crear al archivo', error);
-            });
-        });
-        return `uploads/${pathFolder}`;
-    } catch (error) {
-        throw new Error(String(error));
-    }
-}
 /*
 @Params:
     nameFile:string
@@ -76,24 +60,6 @@ function SaveManyFiles({ mainFolder, file }) {
 function getOneFile(pathFile) {
     try {
         return `data:image/jpeg;base64, ${fs.readFileSync(pathFile, { encoding: 'base64' })}`;
-    } catch (error) {
-        console.log(error);
-        return 'Imagen  no Encontrada';
-    }
-}
-function getMultipleFiles(pathFile) {
-    try {
-        if (!pathFile) return { message: 'Path no Encontrada' };
-        return new Promise((resolve, reject) => {
-            fs.readdir(pathFile, (err, files) => {
-                if (err) reject(err);
-                resolve(
-                    files.map((file) => {
-                        return { name: file, file: fs.readFileSync(`${pathFile}/${file}`, { encoding: 'base64' }) };
-                    })
-                );
-            });
-        });
     } catch (error) {
         console.log(error);
         return 'Imagen  no Encontrada';
@@ -148,14 +114,4 @@ function deleleFolder(pathfile) {
         throw new Error(error);
     }
 }
-export {
-    uploadImg,
-    SaveOneFile,
-    getOneFile,
-    updateOneFile,
-    deleteOneFile,
-    isImage,
-    deleleFolder,
-    SaveManyFiles,
-    getMultipleFiles,
-};
+export { uploadImg, SaveOneFile, getOneFile, updateOneFile, deleteOneFile, isImage,deleleFolder };
