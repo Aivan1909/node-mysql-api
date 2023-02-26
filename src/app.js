@@ -1,10 +1,13 @@
 import express from 'express'
 import morgan from 'morgan'
+import passport from 'passport'
+import '../src/middleware/google.js'
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const https =  require('https')
 const fs =  require('fs')
+
 
 
 // Routes
@@ -87,6 +90,9 @@ app.use(morgan('dev'))
 app.use(express.json()) */
 app.use(express.static(path.join(__dirname, 'public')))
 
+//app.use(passport.initialize());
+
+
 //Routes
 //-------------------------------------------------------------------------------------------
 app.use(error)
@@ -118,6 +124,19 @@ app.use("/api/testimonios", testimonioRoutes)
 app.use("/api/trayectoria", trayectoriaRoutes)
 app.use("/api/visibilidad",visibilidadRoutes)
 app.use("/api/usuarios", usuarioRoutes)
+
+
+/* app.use(
+  "/auth",
+  passport.authenticate("auth-google", {
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ],
+    session: false,
+  }),
+  loginRouter
+); */
 
 
 export default app;
