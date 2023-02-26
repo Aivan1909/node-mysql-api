@@ -1,5 +1,7 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
+const sgMail = require('@sendgrid/mail');
+const config = require('../config');
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
@@ -232,11 +234,49 @@ const cambiarEstado = async (req, res) => {
   }
 }
 
+const sendEmail = async (req, res) => {
+    const { ...rest } = req.body;
+    let destinatario = rest.destinatario;
+    let asunto = rest.asunto;
+    let textEmail = rest.textEmail;
+    let response = await emailSender(destinatario, asunto, textEmail);
+    
+    if(!response?.errorEmail){
+        res.status(200).json(response);
+    }else{
+        res.status(400).json(response);
+    }
+    
+};
+
+const emailSender = async (destinatario, asunto, textEmail) => {
+let responseEmail;
+sgMail.setApiKey(config.emailSendGridConfig.apiKey);
+const mensaje = {
+  to: destinatario,
+  from: config.emailSendGridConfig.senderName,
+  subject: asunto,
+  html: `<strong>${textEmail}</strong>`,
+}
+
+responseEmail = sgMail
+  .send(mensaje)
+  .then((response) => {
+    return { statusCodeEmail:response[0].statusCode, message: 'enviado'};
+  })
+  .catch((error) => {
+    return { errorMessage:error?.message, errorBody: error?.response?.body, message: 'no enviado'};
+  });
+
+  return responseEmail;
+}
+
 export const methods = {
   addEmprendimiento,
   getEmprendimientos,
   getEmprendimiento,
   updateEmprendimiento,
   deleteEmprendimiento,
-  cambiarEstado
+  cambiarEstado,
+  sendEmail,
 };
