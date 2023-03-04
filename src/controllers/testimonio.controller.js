@@ -1,7 +1,7 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL  = process.env.PUBLIC_URL
+const PUBLIC_URL = process.env.PUBLIC_URL
 
 const _TABLA = "tmunay_testimonios"
 
@@ -40,7 +40,7 @@ const getTestimonio = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'` , id);
+    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });
@@ -54,23 +54,23 @@ const updateTestimonio = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { nombre, apellidos, usuarioModificacion } = req.body;
+    const { nombre, apellidos, testimonio, usuarioModificacion } = req.body;
     if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const testimonio = { nombre, apellidos, usuarioModificacion };
-    testimonio.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const testimonioEditado = { nombre, apellidos, testimonio, usuarioModificacion };
+    testimonioEditado.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [testimonio, id]);
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [testimonioEditado, id]);
     const foundTestimonio = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.file) {
-        const responseUpdateImage=updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file });
-        if(responseUpdateImage)
-            await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
+      const responseUpdateImage = updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file });
+      if (responseUpdateImage)
+        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }
     res.json({ body: foundTestimonio[0] });
-} catch (error) {
+  } catch (error) {
     res.status(500);
     res.json(error.message);
-}
+  }
 
 }
 
