@@ -4,20 +4,18 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_mentores';
-const _TABLA1 = 'horario_mentoria'
-//const _TABLA1 = 'horario_mentor';
-const _TABLA2 = 'area_mentor';
+const _TABLA1 = 'tmunay_mentorias';
+const _TABLA2 = 'tmunay_areas'; 
 const _TABLA3 = 'especialidad_mentor';
-const _TABLA4 = 'tmunay_horarios';
 const _TABLA5 = 'users';
+const _TABLA7 = 'tmunay_especialidad';
+const _TABLA8 = 'dicta_mentoria';
 
 
 
 const addMentores = async (req, res) => {
   try {
-    //Horario
-    const bkHorario = req.body.horario
-    delete req.body.horario
+    //Recuperar el Usuario para completar el  formulario[revision]
 
     const bkEspecialidad = req.body.especialidad
     delete req.body.especialidad
@@ -35,24 +33,8 @@ const addMentores = async (req, res) => {
         mentor_id: insertId,
         especialidad_id: element
         } ;
-        //console.log("IDS->externos ->" , idExternaHorario)
         connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaEspecialidad);
      });
-
-    //Insertando  los horarios del mentor
-    await bkHorario.forEach (element => {
-      const  idExternaHorario  = {
-        mentores_id: insertId,
-        dia: element.dia,
-        hora1: element.hora1,
-        hora2: element.hora2
-        //horarios_id: element
-      } ;
-      idExternaHorario.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-      idExternaHorario.estado =1;
-      //console.log("IDS->externos ->" , idExternaHorario)
-      connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaHorario);
-    });
 
     res.json({ body: result });
   } catch (error) {
@@ -72,6 +54,63 @@ const getMentores = async (req, res) => {
   }
 };
 
+//Muestreo de Mentores con sus mentorias y  horarios 
+const getMentoresMuestreos = async (req, res) => {
+  try {
+    //const { id } = req.params;
+    const connection = await getConnection();
+    
+    let sql = `SELECT xu.id,xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, 
+              xm.curriculum, xm.dia, xm.hora1, xm.hora2,xm.duracion, xm.estado, xm.tipo , xm.online
+              FROM ${_TABLA} xm, ${_TABLA5} xu 
+              where xm.user_id = xu.id`;
+    const mentores = await connection.query(sql);
+
+    let resultF = [];
+    for (const iterator of mentores) {
+      const { mentor_id } = iterator;
+      const { dia } = iterator;
+      let sql1 = `SELECT xm.id as mentoria_id,xd.mentor_id ,xm.codigo, concat(xm.nombre,' ', xm.apellido) as nombreResp, xm.correo, 
+      concat(codigoTel,' ',telefono) as telefonoResp, xm.fechaMentoria, xm.hora1 as hora1Mentoria, xm.hora2 as hora2Mentoria, xm.flg_mensaje, 
+      xm.mensaje, xt.nombre as nombreArea, xe.nombre as nombreEspecialidad,xm.estado 
+      FROM ${_TABLA8} xd, ${_TABLA1} xm , ${_TABLA7} xe, ${_TABLA2} xt  
+      WHERE xd.mentor_id = xm.id and xd.especialidad_id = xe.id and xe.areas_id = xt.id and xd.mentor_id  = ?`;
+      const mentoria = await connection.query(sql1, mentor_id);
+     
+      for (const iteratorMeto of mentoria) {
+       let  fechasMentoria = [];
+       const m =  require('moment')
+       let diaHoy = m().isoWeekday();
+       let v1;
+       let  diaBase = dia; 
+      console.log('diahoy: ', diaHoy, ' diaBase: ', diaBase)
+        v1 = (7 - diaHoy + diaBase) ;    
+      if(v1>=7)
+      {
+        v1 = v1-7; 
+      }
+      let  fecha = m().add(v1,'days');
+      console.log('fecha0: ', fecha)
+      fechasMentoria.push(fecha);
+  
+      for(let i = 0; i<3; i++){
+         let  f = m(fecha).add(7,'days');
+          fecha= f;
+         fechasMentoria.push(f);
+      };
+
+      resultF.push({'mentores' : iterator, 'mentorias':iteratorMeto ,'fechasMentoria': fechasMentoria })
+      }
+    }
+
+    await res.json({ body: resultF});
+  } catch (error) {
+    console.log('Este es el error', error)
+    res.status(500);
+    res.json(error.message);
+  }
+};
+
 const getMentor = async (req, res) => {
   try {
     const { id } = req.params;
@@ -80,6 +119,61 @@ const getMentor = async (req, res) => {
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+};
+
+const getMentoresMuestreo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await getConnection();
+    
+    let sql = `SELECT xu.id,xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, 
+              xm.curriculum, xm.dia, xm.hora1, xm.hora2,xm.duracion, xm.estado, xm.tipo , xm.online
+              FROM ${_TABLA} xm, ${_TABLA5} xu 
+              where xm.user_id = xu.id and xm.id = ?`;
+    const mentores = await connection.query(sql, id);
+
+    let resultF = [];
+    for (const iterator of mentores) {
+      const { mentor_id } = iterator;
+      const { dia } = iterator;
+      let sql1 = `SELECT xm.id as mentoria_id,xd.mentor_id ,xm.codigo, concat(xm.nombre,' ', xm.apellido) as nombreResp, xm.correo, 
+      concat(codigoTel,' ',telefono) as telefonoResp, xm.fechaMentoria, xm.hora1 as hora1Mentoria, xm.hora2 as hora2Mentoria, xm.flg_mensaje, 
+      xm.mensaje, xt.nombre as nombreArea, xe.nombre as nombreEspecialidad,xm.estado 
+      FROM ${_TABLA8} xd, ${_TABLA1} xm , ${_TABLA7} xe, ${_TABLA2} xt  
+      WHERE xd.mentor_id = xm.id and xd.especialidad_id = xe.id and xe.areas_id = xt.id and xd.mentor_id  = ?`;
+      const mentoria = await connection.query(sql1, mentor_id);
+     
+      for (const iteratorMeto of mentoria) {
+       let  fechasMentoria = [];
+       const m =  require('moment')
+       let diaHoy = m().isoWeekday();
+       let v1;
+       let  diaBase = dia; 
+      console.log('diahoy: ', diaHoy, ' diaBase: ', diaBase)
+        v1 = (7 - diaHoy + diaBase) ;    
+      if(v1>=7)
+      {
+        v1 = v1-7; 
+      }
+      let  fecha = m().add(v1,'days');
+      console.log('fecha0: ', fecha)
+      fechasMentoria.push(fecha);
+  
+      for(let i = 0; i<3; i++){
+         let  f = m(fecha).add(7,'days');
+          fecha= f;
+         fechasMentoria.push(f);
+      };
+
+      resultF.push({'mentores' : iterator, 'mentorias':iteratorMeto ,'fechasMentoria': fechasMentoria })
+      }
+    }
+
+    await res.json({ body: resultF});
   } catch (error) {
     res.status(500);
     res.json(error.message);
@@ -116,80 +210,15 @@ const deleteMentor = async (req, res) => {
 };
 
 
-const getListaMentorEsp = async (req, res) => {
-  console.log('holaaaa->>>>>>')
-  try {
-    const connection = await getConnection();
-    let sql = `SELECT  A.id, concat(D.nombre ,' ', D.apellidos) as nombres , C.duracion, A.online
-               FROM ${_TABLA} A
-               INNER JOIN ${_TABLA1} B ON A.id = B.mentores_id
-               INNER JOIN ${_TABLA4} C ON B.horarios_id = C.id
-               INNER JOIN ${_TABLA5} D ON A.user_id = D.id
-               WHERE A.tipo = 'E'`
-    const result = await connection.query(sql);
-
-
-    res.json({ body: result });
-  } catch (error) {
-    res.status(500);
-    res.json(error.message);
-  }
-};
-
-
-
-const getListaMentorD = async (req, res) => {
-  try {
-    const connection = await getConnection();
-    let sql = `SELECT  A.id, concat(D.nombre ,' ', D.apellidos) as nombres , C.duracion, A.online
-               FROM ${_TABLA} A
-               INNER JOIN ${_TABLA1} B ON A.id = B.mentores_id
-               INNER JOIN ${_TABLA4} C ON B.horarios_id = C.id
-               INNER JOIN ${_TABLA5} D ON A.user_id = D.id
-               WHERE A.tipo = 'D'`;
-    const result = await connection.query(sql);
-    res.json({ body: result });
-  } catch (error) {
-    res.status(500);
-    res.json(error.message);
-  }
-};
-
-/* const getMentorFechaHorario= async (req, res) => {
-  try {
-    const { fecha } = req.params;
-    const connection = await getConnection();
-    let sql1 = `SELECT  A.user_id, CONCAT(B.nombre , ' ', B.apellidos) AS nombres
-                FROM ${_TABLA} A, ${_TABLA5} B
-                WHERE A.user_id = B.id`
-    const result = await connection.query(sql1);
- 
-    let resulF;
-    result.forEach(element => {
-       const { user_id, nombres  } = element;
-       let sql2 = `SELECT D.fecha, D.hora1, D.hora2
-                   FROM mentoria_mentor A, tmunay_mentorias B, horario_mentoria C,  tmunay_horarios D 
-                   WHERE A.mentorias_id = B.id and  B.id = C.mentorias_id and  C.horarios_id = D.id
-                   and A.mentores_id = 1 and DATE_FORMAT(D.fecha, '%Y-%m-%d') = '2023-02-21'`
-    });
-
-    res.json({ body: result });
-  } catch (error) {
-    res.status(500);
-    res.json(error.message);
-  }
-}; */
-
-
-
-
-
 export const methods = {
   addMentores,
   getMentores,
+  getMentoresMuestreos,
   getMentor,
-  getListaMentorEsp,
-  getListaMentorD,
+  getMentoresMuestreo,
   updateMentor,
-  deleteMentor
+  deleteMentor,
+
+
+
 };
