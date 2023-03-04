@@ -7,8 +7,8 @@ import multer from 'multer';
 const router = Router()
 //console.log('Estamos en rutas:')
 router.post('/', multer().single('imagen'), isImage, mentorController.addMentores) //authenticate
-router.get('/listaesp', mentorController.getListaMentorEsp)
-router.get('/listaD', mentorController.getListaMentorD)
+router.get('/muestreos', mentorController.getMentoresMuestreos)
+router.get('/muestreo/:id', mentorController.getMentoresMuestreo)
 router.get('/', mentorController.getMentores)
 router.get('/:id', mentorController.getMentor)
 

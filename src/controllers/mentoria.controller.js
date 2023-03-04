@@ -216,5 +216,4 @@ export const methods = {
   getMentoria,
   updateMentoria,
   deleteMentoria,
-  getMentoriasMentor
 };
