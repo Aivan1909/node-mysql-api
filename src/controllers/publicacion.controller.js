@@ -35,7 +35,7 @@ const getPublicacion = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
-    res.json({ body:  result });
+    res.json({ body:  result[0] });
   } catch (error) {
     res.status(500);
     res.json(error.message);

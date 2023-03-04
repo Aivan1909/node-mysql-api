@@ -1,6 +1,5 @@
 import express from 'express'
 import morgan from 'morgan'
-import passport from 'passport'
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')

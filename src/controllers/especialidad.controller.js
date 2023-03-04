@@ -29,7 +29,7 @@ const addEspecialidades = async (req, res) => {
 const getEspecialidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
+    const result = await connection.query(`SELECT e.*, a.nombre as area FROM ${_TABLA} e, ${_TABLA1} a where a.id=e.areas_id and e.estado  = '1'`);
     const foundespecialidadsWithImages = [...result].map((item) => {
     return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: foundespecialidadsWithImages });

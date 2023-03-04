@@ -615,11 +615,8 @@ const getConoceMentores = async (req, res) => {
     const foundMentoresWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.avatar) };
     });
-
-     
-
-    const resultF = {'mentores':foundMentoresWithImages};
-    res.json({ body: resultF });
+    
+    res.json({ body: foundMentoresWithImages });
   } catch (error) {
     res.status(500);
     res.json(error.message);
