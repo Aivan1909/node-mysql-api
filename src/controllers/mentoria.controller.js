@@ -15,10 +15,7 @@ const addMentorias = async (req, res) => {
     //Mentores 
     const bkMentor = req.body.mentor
     delete req.body.mentor
-    //Horario
-    const bkHorario = req.body.horario
-    delete req.body.horario
-    //AreaMentoria
+
     const bkArea = req.body.area
     delete req.body.area
     //Emprendimiento
@@ -32,7 +29,7 @@ const addMentorias = async (req, res) => {
     const connection = await getConnection();
     let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
     
-    const { insertId} =  await result;
+    const {insertId} =  await result;
 
     //Generando  el  codigo de tipo de Mentoria
     
@@ -56,14 +53,6 @@ const addMentorias = async (req, res) => {
       connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaMentor);
     }); 
     //Insertando  el id Relacional Horarios
-    await bkHorario.forEach (element => {
-      const  idExternaHorario  = {
-        mentorias_id: insertId,
-        horarios_id: element
-      } ;
-      //console.log("IDS->externos ->" , idExternaHorario)
-      connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaHorario);
-    });
     //Insertando  el id Relacional Areas
     await bkArea.forEach (element => {
       const  idExternaArea  = {
@@ -144,6 +133,79 @@ const deleteMentoria = async (req, res) => {
     res.json(error.message);
   }
 };
+
+//PENDIENTE
+const solicitudMentorias = async (req, res) => {
+  try {
+    //Mentores 
+    const bkMentor = req.body.mentor
+    delete req.body.mentor
+
+    const bkArea = req.body.area
+    delete req.body.area
+    //Emprendimiento
+    const bkEmprendimiento = req.body.emprendimiento
+    delete req.body.emprendimiento
+    
+    const mentoria = req.body;
+    mentoria.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    mentoria.estado = 1;
+    let tipo= mentoria.tipo;
+    const connection = await getConnection();
+    let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
+    
+    const {insertId} =  await result;
+
+    //Generando  el  codigo de tipo de Mentoria
+    
+    let cod = insertId.toString();
+    let codigo;
+    if(tipo=='D'){ 
+       codigo = 'D-'.concat(cod.padStart(7,0)) 
+    }
+    if(tipo=='E'){ 
+      codigo = 'E-'.concat(cod.padStart(7,0)) 
+   }
+   await connection.query(`UPDATE ${_TABLA}  SET tipo = ? WHERE id =?`,[codigo,insertId]);
+   
+    //Insertando  el id Relacional Mentores
+    await bkMentor.forEach (element => {
+      const  idExternaMentor  = {
+        mentorias_id: insertId,
+        mentores_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaMentor)
+      connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaMentor);
+    }); 
+    //Insertando  el id Relacional Horarios
+    //Insertando  el id Relacional Areas
+    await bkArea.forEach (element => {
+      const  idExternaArea  = {
+        mentoria_id: insertId,
+        area_id: element
+      } ;
+      //console.log("IDS->externos ->" , idExternaArea)
+      connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaArea);
+    });
+
+    //Insertando  el id Relacional Emprendimiento
+    await bkEmprendimiento.forEach (element => {
+      const  idExternaEmprendimiento  = {
+        mentorias_id: insertId,
+        emprendimiento_id: element
+      } ;
+      console.log("IDS->externos ->" , idExternaEmprendimiento)
+      connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaEmprendimiento);
+    });
+  
+    res.json({ body: result });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+};
+
+
 
 
 
