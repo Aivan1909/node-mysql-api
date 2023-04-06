@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 module.exports = {
-  app: { 
+  app: {
     port: process.env.PORT || '4000',
     clientUrl: process.env.CLIENT_URL || 'http://localhost',
     serverUrl: process.env.SERVER_URL || 'http://localhost:8000'
@@ -17,4 +17,5 @@ module.exports = {
     apiKey: process.env.API_KEY || ' ',
     senderName: process.env.SENDER_EMAIL || ' '
   },
+  crypt: process.env.CRYPT_SECRET || 'SecretKeyMunayense'
 }

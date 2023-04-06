@@ -7,8 +7,7 @@ const _TABLA = 'tmunay_mentorias';
 const _TABLA1 = 'mentoria_mentor';
 const _TABLA2 = 'horario_mentoria';
 const _TABLA3 = 'area_mentoria';
-const _TABLA4 = 'emprendimiento_mentoria';
-const _TABLA5 = 'tmunay_horarios';
+const _TABLA5 = 'tmunay_dias';
 
 
 const addMentorias = async (req, res) => {
@@ -29,8 +28,8 @@ const addMentorias = async (req, res) => {
     let tipo = mentoria.tipo;
     const connection = await getConnection();
     let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
-    
-    const {insertId} =  await result;
+
+    const { insertId } = await result;
 
     //Generando  el  codigo de tipo de Mentoria
 
@@ -64,14 +63,14 @@ const addMentorias = async (req, res) => {
     };
 
     //Insertando  el id Relacional Emprendimiento
-    for (element of bkEmprendimiento) {
+    /* for (element of bkEmprendimiento) {
       const idExternaEmprendimiento = {
         mentorias_id: insertId,
         emprendimiento_id: element
       };
       //console.log("IDS->externos ->", idExternaEmprendimiento)
       await connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaEmprendimiento);
-    };
+    }; */
 
     res.json({ body: result });
   } catch (error) {
@@ -104,6 +103,37 @@ const getMentoria = async (req, res) => {
     res.json(error.message);
   }
 };
+
+const getMentoriasUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM tmunay_mentores WHERE user_id = ?`, id);
+    if (!result.length > 0) return res.status(404);
+
+    res.json({ body: { ...result[0] } });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+const getMentoriasEmprendedor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(
+      `SELECT me.*
+      FROM tmunay_mentorias me, tmunay_emprendimientos em
+      WHERE me.emprendimiento_id=em.id and em.user_id=?`
+      , id);
+
+    res.json({ body: result });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
 
 const updateMentoria = async (req, res) => {
   try {
@@ -146,58 +176,58 @@ const solicitudMentorias = async (req, res) => {
     //Emprendimiento
     const bkEmprendimiento = req.body.emprendimiento
     delete req.body.emprendimiento
-    
+
     const mentoria = req.body;
     mentoria.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     mentoria.estado = 1;
-    let tipo= mentoria.tipo;
+    let tipo = mentoria.tipo;
     const connection = await getConnection();
     let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentoria);
-    
-    const {insertId} =  await result;
+
+    const { insertId } = await result;
 
     //Generando  el  codigo de tipo de Mentoria
-    
+
     let cod = insertId.toString();
     let codigo;
-    if(tipo=='D'){ 
-       codigo = 'D-'.concat(cod.padStart(7,0)) 
+    if (tipo == 'D') {
+      codigo = 'D-'.concat(cod.padStart(7, 0))
     }
-    if(tipo=='E'){ 
-      codigo = 'E-'.concat(cod.padStart(7,0)) 
-   }
-   await connection.query(`UPDATE ${_TABLA}  SET tipo = ? WHERE id =?`,[codigo,insertId]);
-   
+    if (tipo == 'E') {
+      codigo = 'E-'.concat(cod.padStart(7, 0))
+    }
+    await connection.query(`UPDATE ${_TABLA}  SET tipo = ? WHERE id =?`, [codigo, insertId]);
+
     //Insertando  el id Relacional Mentores
-    await bkMentor.forEach (element => {
-      const  idExternaMentor  = {
+    await bkMentor.forEach(element => {
+      const idExternaMentor = {
         mentorias_id: insertId,
         mentores_id: element
-      } ;
+      };
       //console.log("IDS->externos ->" , idExternaMentor)
       connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaMentor);
-    }); 
+    });
     //Insertando  el id Relacional Horarios
     //Insertando  el id Relacional Areas
-    await bkArea.forEach (element => {
-      const  idExternaArea  = {
+    await bkArea.forEach(element => {
+      const idExternaArea = {
         mentoria_id: insertId,
         area_id: element
-      } ;
+      };
       //console.log("IDS->externos ->" , idExternaArea)
       connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaArea);
     });
 
     //Insertando  el id Relacional Emprendimiento
-    await bkEmprendimiento.forEach (element => {
-      const  idExternaEmprendimiento  = {
+    /* await bkEmprendimiento.forEach(element => {
+      const idExternaEmprendimiento = {
         mentorias_id: insertId,
         emprendimiento_id: element
-      } ;
-      console.log("IDS->externos ->" , idExternaEmprendimiento)
+      };
+      console.log("IDS->externos ->", idExternaEmprendimiento)
       connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaEmprendimiento);
-    });
-  
+    }); */
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -214,6 +244,8 @@ export const methods = {
   addMentorias,
   getMentorias,
   getMentoria,
+  getMentoriasUsuario,
+  getMentoriasEmprendedor,
   updateMentoria,
   deleteMentoria,
 };

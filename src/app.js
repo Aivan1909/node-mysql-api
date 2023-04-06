@@ -3,8 +3,8 @@ import morgan from 'morgan'
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const https =  require('https')
-const fs =  require('fs')
+const https = require('https')
+const fs = require('fs')
 
 
 
@@ -37,8 +37,10 @@ import mentoriaRoutes from './routes/mentoria.routes'
 import horarioRoutes from './routes/horario.routes'
 import areaRoutes from './routes/area.routes'
 import especialidadRoutes from './routes/especialidad.routes'
+import equipoRoutes from './routes/equipo.routes'
 import emprendimientoRoutes from './routes/emprendimiento.routes'
 import publicacionRoutes from './routes/publicacion.routes'
+import institucionRoutes from './routes/institucion.routes'
 import { Http2ServerRequest } from 'http2'
 
 
@@ -64,12 +66,12 @@ const corsOptions = {
 //Cors
 app.use(cors());
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", '*');
   res.header("Access-Control-Allow-Credentials", true);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-    next();
+  next();
 });
 
 //SsL
@@ -104,10 +106,12 @@ app.use("/api/criterios", criterioRoutes)
 app.use("/api/departamento", dptoRoutes)
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/especialidades", especialidadRoutes)
+app.use("/api/equipo", equipoRoutes)
 app.use("/api/emprendimiento", emprendimientoRoutes)
 app.use("/api/fases", faseRoutes)
 app.use("/api/figuras", figuraRoutes)
 app.use("/api/horarios", horarioRoutes)
+app.use("/api/institucion", institucionRoutes)
 app.use("/api/medios", medioRoutes)
 app.use("/api/mentores", mentorRoutes)
 app.use("/api/mentorias", mentoriaRoutes)

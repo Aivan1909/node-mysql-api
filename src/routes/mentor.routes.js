@@ -6,14 +6,14 @@ import multer from 'multer';
 
 const router = Router()
 //console.log('Estamos en rutas:')
-router.post('/', multer().single('imagen'), isImage, mentorController.addMentores) //authenticate
+router.post('/', multer().single('avatar'), isImage, mentorController.addMentores) //authenticate
 router.get('/muestreos', mentorController.getMentoresMuestreos)
 router.get('/muestreo/:id', mentorController.getMentoresMuestreo)
 router.get('/', mentorController.getMentores)
 router.get('/:id', mentorController.getMentor)
 
 
-router.put('/:id', multer().single('imagen'), isImage, mentorController.updateMentor)
+router.put('/:id', multer().single('avatar'), isImage, mentorController.updateMentor)
 router.delete('/:id', mentorController.deleteMentor)
 
 

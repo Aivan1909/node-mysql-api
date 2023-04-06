@@ -1,5 +1,6 @@
 import { json } from "body-parser";
 import { getConnection } from "../database/database";
+import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
 const bcrypt = require("bcrypt");
 const { getToken, getTokenData } = require("../bin/jwt");
@@ -31,7 +32,7 @@ const addRegistro = async (req, res) => {
           const { insertId } = result;
           const relacionRol = {
             user_id: insertId,
-            rol_id: 1,
+            rol_id: 4,
           };
 
           result = await connection.query(`INSERT INTO ${_TABLA1} SET ?`, relacionRol);
@@ -61,23 +62,25 @@ const login = async (req, res) => {
 
     const connection = await getConnection();
     await connection
-      .query(`SELECT * FROM ${_TABLA} WHERE email=?`, email)
+      .query(`SELECT * FROM users WHERE google_login = 0 and email=?`, email)
       .then((user) => {
-        console.log(user[0].password);
         if (user) {
+
+          const { id } = user[0]
+          let token;
           bcrypt.compare(password, user[0].password, function (err, result) {
             if (err) {
-              console.log(err);
               return res
                 .status(500)
                 .json({ message: "Ocurrio un error inesperado" });
             }
             if (result) {
-              const token = getToken({ email });
+              token = getToken({ email });
               user[0].token = token;
+              user[0].id = encryptar(id);
+
               return res.json({ message: "Bienvenid@ ", body: user[0] });
             } else {
-              console.log(result);
               return res.status(400).json({ message: "Datos incorrectos" });
             }
           });
@@ -135,9 +138,9 @@ const getRegistros = async (req, res) => {
   try {
     const connection = await getConnection()
     const result = await connection.query(`SELECT xu.*, xr.roles, xtr.roles_desc 
-    FROM ${_TABLA} xu, (SELECT user_id, GROUP_CONCAT(DISTINCT rol_id) as roles FROM ${_TABLA1}) as xr, 
+    FROM ${_TABLA} xu, (SELECT user_id, GROUP_CONCAT(DISTINCT rol_id) as roles FROM ${_TABLA1} group by user_id) as xr, 
     (select r.user_id, GROUP_CONCAT(DISTINCT tr.nombre) as roles_desc from ${_TABLA} u, ${_TABLA1} r, ${_TABLA2} tr 
-    WHERE u.id=r.user_id and r.rol_id=tr.id) as xtr where xu.id=xr.user_id and xr.user_id=xtr.user_id;`)
+    WHERE u.id=r.user_id and r.rol_id=tr.id group by r.user_id) as xtr where xu.id=xr.user_id and xr.user_id=xtr.user_id;`)
     res.json({ body: result })
   } catch (error) {
     console.log(error)
@@ -149,12 +152,14 @@ const getRegistro = async (req, res) => {
   try {
     console.log(req.params);
     const { id } = req.params;
+    const idd = desencryptar(id)
+
     const connection = await getConnection();
     const result = await connection.query(
       `SELECT * FROM ${_TABLA} WHERE id=?`,
-      id
+      idd
     );
-    res.json(result);
+    res.json({ body: result[0] });
   } catch (error) {
     res.status(500).json(error.message);
   }
@@ -205,10 +210,11 @@ const actualizaRoles = async (req, res) => {
     const { id_user, agregar, eliminar } = req.body
     const connection = await getConnection();
     let result
+    console.log(id_user)
     if (agregar.length > 0) {
       await agregar.forEach(element => {
         result = connection.query(
-          `INSERT INTO ${_TABLA1} SET user_id=? and rol_id=?`,
+          `INSERT INTO ${_TABLA1} SET user_id=?, rol_id=?`,
           [id_user, element]
         );
       });
@@ -224,7 +230,6 @@ const actualizaRoles = async (req, res) => {
     res.json({ body: result })
 
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 }
@@ -248,6 +253,71 @@ const cambiarEstado = async (req, res) => {
   }
 }
 
+const loginGoogle = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const connection = await getConnection();
+    await connection
+      .query(`SELECT * FROM users WHERE google_login = 1 AND email=?`, email)
+      .then(async (user) => {
+        if (user.length > 0) {
+
+          const { id } = user[0]
+          const token = getToken({ email });
+          user[0].token = token;
+          user[0].id = encryptar(id);
+
+          return res.json({ message: "Bienvenid@ ", body: user[0] });
+        } else {
+          const respuesta = await addRegistroGoogle(req)
+          return res.json({ message: "Bienvenid@ ", body: respuesta });
+        }
+      })
+      .catch((err) => {
+        console.log("400", err)
+        return res.status(400).json({ message: "Datos incorrectos." });
+      });
+  } catch (error) {
+    console.log("500", error)
+    return res.status(500).json({ message: "Ha ocurrido un error" });
+  }
+}
+
+const addRegistroGoogle = async (req) => {
+  try {
+    const dataAdd = req.body;
+    const { email } = dataAdd;
+    const token = await getToken({ email });
+
+
+    const connection = await getConnection();
+    let result = await connection.query(
+      `INSERT INTO ${_TABLA} SET ?`,
+      dataAdd
+    );
+    //insertando a la tabla relacional 
+    const { insertId } = result;
+    const relacionRol = {
+      user_id: insertId,
+      rol_id: 4,
+    };
+
+    result = await connection.query(`INSERT INTO ${_TABLA1} SET ?`, relacionRol);
+    //Insertando  a la tabla relacional 
+
+    result = await connection.query(
+      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      insertId
+    );
+
+    result[0].token = token;
+    return result[0];
+  } catch (error) {
+    throw new Error(error)
+  }
+};
+
 export const methods = {
   addRegistro,
   getRegistros,
@@ -257,5 +327,6 @@ export const methods = {
   login,
   loginAdmin,
   actualizaRoles,
-  cambiarEstado
+  cambiarEstado,
+  loginGoogle
 };

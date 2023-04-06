@@ -77,7 +77,7 @@ const updateOds = async (req, res) => {
 
     const Ods = { nombre, usuarioModificacion };
     const connection = await getConnection();
-    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [Ods, id]);
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [Ods, id]);
     const foundOds = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.files) {
       const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
@@ -91,7 +91,7 @@ const updateOds = async (req, res) => {
       if (responseUpdateImagenEn)
         await connection.query(`UPDATE ${_TABLA} SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
     }
-    res.json({ body: foundOds[0] }); 
+    res.json({ body: foundOds[0] });
   } catch (error) {
     res.status(500);
     res.json(error.message);

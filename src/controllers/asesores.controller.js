@@ -49,23 +49,29 @@ const getAsesor = async (req, res) => {
 };
 
 const updateAsesor = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nombres,apellidos,cargo,redSocial, usuarioModificacion } = req.body;
-        if (nombres === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const asesor = { nombres, apellidos, cargo, redSocial, usuarioModificacion };
-        asesor.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-        const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [asesor, id]);
-        const foundAsesor = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        if (req.file) {
-            updateOneFile({ pathFile: foundAsesor[0].imagen, file: req.file });
-        }
-        res.json({ body: foundAsesor[0] });
-    } catch (error) {
-        res.status(500);
-        res.json(error.message);
+  try {
+    const { id } = req.params;
+    const { nombres, apellidos, imagen, cargo, redSocial, usuarioModificacion } = req.body;
+    if (nombres === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const asesor = { nombres, apellidos, cargo, redSocial, usuarioModificacion };
+    asesor.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [asesor, id]);
+    const foundAsesor = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    if (req.file) {
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundAsesor[0].imagen, file: imagen });
+      if (responseUpdateImagen)
+        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+      else {
+        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundAsesor[0].id, file: req.file });
+        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, foundAsesor[0].id]);
+      }
     }
+    res.json({ body: foundAsesor[0] });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
 };
 
 const deleteAsesor = async (req, res) => {

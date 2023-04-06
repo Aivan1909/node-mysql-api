@@ -51,16 +51,23 @@ const getTrayectoria = async (req, res) => {
 const updateTrayectoria = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, usuarioModificacion } = req.body;
+    const { nombre, imagen, usuarioModificacion } = req.body;
     if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const trayectoria = { nombre, usuarioModificacion };
+    const trayectoria = { nombre, imagen, usuarioModificacion };
     trayectoria.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
     await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [trayectoria, id]);
     const foundTrayectoria = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.file) {
-      updateOneFile({ pathFile: foundTrayectoria[0].imagen, file: req.file });
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundTrayectoria[0].imagen, file: imagen });
+      if (responseUpdateImagen)
+        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+      else {
+        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundTrayectoria[0].id, file: req.file });
+        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, foundTrayectoria[0].id]);
+      }
     }
+
     res.json({ body: foundTrayectoria[0] });
   } catch (error) {
     res.status(500);

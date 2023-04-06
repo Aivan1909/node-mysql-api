@@ -3,7 +3,7 @@ import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middle
 
 const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_horarios';
+const _TABLA = 'tmunay_dias';
 
 const addHorarios = async (req, res) => {
   try {
@@ -23,8 +23,8 @@ const getHorarios = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
-   // const foundhorariosWithImages = [...result].map((item) => {
-   // return { ...item, file: getOneFile(item.imagen) };});
+    // const foundhorariosWithImages = [...result].map((item) => {
+    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -47,20 +47,20 @@ const getHorario = async (req, res) => {
 };
 
 const updateHorario = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { fecha ,hora1, usuarioModificacion } = req.body;
-        if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const horarios = {fecha ,hora1, usuarioModificacion  };
-        horarios.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-        const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [horarios, id]);
-        const foundhorarios = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        res.json({ body: foundhorarios[0] });
-    } catch (error) {
-        res.status(500);
-        res.json(error.message);
-    }
+  try {
+    const { id } = req.params;
+    const { fecha, hora1, usuarioModificacion } = req.body;
+
+    const horarios = { fecha, hora1, usuarioModificacion };
+    horarios.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [horarios, id]);
+    const foundhorarios = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    res.json({ body: foundhorarios[0] });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
 };
 
 const deleteHorario = async (req, res) => {

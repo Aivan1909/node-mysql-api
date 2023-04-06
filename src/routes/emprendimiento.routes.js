@@ -6,7 +6,8 @@ import multer from 'multer';
 
 const router = Router();
 
-router.post('/', multer().any(), emprendimientoController.addEmprendimiento); //authenticate
+router.post('/', multer().any(), isImage, emprendimientoController.addEmprendimiento);
+router.post('/usuario', emprendimientoController.getEmprendimientoUser);
 router.get('/', emprendimientoController.getEmprendimientos);
 router.get('/:id', emprendimientoController.getEmprendimiento);
 router.put('/:id', multer().any(), emprendimientoController.updateEmprendimiento);
@@ -14,4 +15,4 @@ router.delete('/:id', emprendimientoController.deleteEmprendimiento);
 router.put('/cambiarEstado/:id', emprendimientoController.cambiarEstado);
 router.post('/email', emprendimientoController.sendEmail);
 
-export default router; 
+export default router;
