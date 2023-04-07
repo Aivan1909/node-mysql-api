@@ -27,7 +27,7 @@ const addMentores = async (req, res) => {
 
     // Insertando datos de mentor
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, mentor);
+    const result = await connection.query(`INSERT INTO tmunay_mentores SET ?`, mentor);
 
     const { insertId } = await result;
 
@@ -55,9 +55,27 @@ const addMentores = async (req, res) => {
 const getMentores = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
-    res.json({ body: result });
+    const reMentores = await connection.query(`
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.avatar, us.pais, us.codigoTel, us.telefono, 
+    me.id, me.user_id, me.online, me.institucion_id, ins.nombre nombreInstitucion
+    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    WHERE me.estado=1 and me.user_id=us.id and ins.id=me.institucion_id`);
+
+    const reMentoresImage = [...reMentores].map((item) => {
+      return { ...item, file: getOneFile(item.avatar) };
+    });
+
+    for (const mentor of reMentoresImage) {
+      const reEspecialidades = await connection.query(`SELECT es.nombre
+      FROM tmunay_mentores me, dicta_mentoria dm, tmunay_especialidad es
+      WHERE me.id=dm.mentor_id AND dm.especialidad_id=es.id and me.id=?`, mentor.id)
+
+      mentor.especialidades = reEspecialidades.map((item) => item.nombre)
+    }
+
+    res.json({ body: reMentoresImage });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
@@ -82,7 +100,7 @@ const getMentoresMuestreos = async (req, res) => {
       const dias = await connection.query(sql1, mentor_id);
       /* let sql1 = `SELECT xd.mentor_id , hm.hora_inicio as hora1Mentoria, hm.hora_fin as hora2Mentoria, 
       xt.nombre as nombreArea, xe.nombre as nombreEspecialidad,xm.estado 
-      FROM ${_TABLA8} xd, ${_TABLA} xm , ${_TABLA7} xe, ${_TABLA2} xt, ${_TABLA9} hm
+      FROM ${_TABLA8} xd, tmunay_mentores xm , ${_TABLA7} xe, ${_TABLA2} xt, ${_TABLA9} hm
       WHERE xd.mentor_id = xm.id and xd.especialidad_id = xe.id and xe.areas_id = xt.id and hm.mentores_id=xd.mentor_id and xd.mentor_id = ?`; */
 
       let sql2 = `SELECT esp.areas_id, ar.nombre, dm.especialidad_id, esp.nombre
@@ -146,7 +164,7 @@ const getMentor = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
     if (!result.length > 0) return res.status(404);
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
@@ -163,7 +181,7 @@ const getMentoresMuestreo = async (req, res) => {
 
     let sql = `SELECT xu.id,xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, 
               xm.curriculum, xm.dia, xm.hora1, xm.hora2,xm.duracion, xm.estado, xm.tipo , xm.online
-              FROM ${_TABLA} xm, ${_TABLA5} xu 
+              FROM tmunay_mentores xm, ${_TABLA5} xu 
               where xm.user_id = xu.id and xm.id = ?`;
     const mentores = await connection.query(sql, id);
 
@@ -218,8 +236,8 @@ const updateMentor = async (req, res) => {
     const mentors = { curriculum, user_id: desencryptar(user_id), tipo, usuarioModificacion };
     mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [mentors, id]);
-    const foundmentors = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    await connection.query(`UPDATE tmunay_mentores SET ? WHERE id=?`, [mentors, id]);
+    const foundmentors = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
     res.json({ body: foundmentors[0] });
   } catch (error) {
     res.status(500);
@@ -231,7 +249,7 @@ const deleteMentor = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_mentores WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
