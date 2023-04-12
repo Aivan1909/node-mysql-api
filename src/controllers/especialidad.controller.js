@@ -1,11 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_especialidad';
-const _TABLA1 = 'tmunay_areas';
-
 
 const addEspecialidades = async (req, res) => {
   try {
@@ -16,9 +11,9 @@ const addEspecialidades = async (req, res) => {
     especialidad.estado = 1;
     especialidad.areas_id = bkArea;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, especialidad);
+    const result = await connection.query(`INSERT INTO tmunay_especialidad SET ?`, especialidad);
     const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file });
-    await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -29,9 +24,12 @@ const addEspecialidades = async (req, res) => {
 const getEspecialidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT e.*, a.nombre as area FROM ${_TABLA} e, ${_TABLA1} a where a.id=e.areas_id and e.estado  = '1'`);
+    const result = await connection.query(`SELECT e.*, a.nombre as area 
+    FROM tmunay_especialidad e, tmunay_areas a 
+    where a.id=e.areas_id and e.estado  = 1`);
     const foundespecialidadsWithImages = [...result].map((item) => {
-    return { ...item, file: getOneFile(item.imagen) };});
+      return { ...item, file: getOneFile(item.imagen) };
+    });
     res.json({ body: foundespecialidadsWithImages });
   } catch (error) {
     res.status(500);
@@ -43,9 +41,9 @@ const getEspecialidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_especialidad WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404);
-     const image = getOneFile(result[0].imagen);
+    const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
   } catch (error) {
     res.status(500);
@@ -54,32 +52,32 @@ const getEspecialidad = async (req, res) => {
 };
 
 const updateEspecialidad = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nombre, descripcion  } = req.body;
-        if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const especialidads = { nombre, descripcion };
-        especialidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-        const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [especialidads, id]);
-        const foundEspecialidad = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        if (req.file) {
-            const responseUpdateImage=updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file });
-            if(responseUpdateImage)
-                await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
-        }
-        res.json({ body: foundEspecialidad[0] });
-    } catch (error) {
-        res.status(500);
-        res.json(error.message);
+  try {
+    const { id } = req.params;
+    const { nombre, descripcion } = req.body;
+    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const especialidads = { nombre, descripcion };
+    especialidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE tmunay_especialidad SET ? WHERE id=?`, [especialidads, id]);
+    const foundEspecialidad = await connection.query(`SELECT * FROM tmunay_especialidad WHERE id=?`, id);
+    if (req.file) {
+      const responseUpdateImage = updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file });
+      if (responseUpdateImage)
+        await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }
+    res.json({ body: foundEspecialidad[0] });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
 };
 
 const deleteEspecialidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_especialidad WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -87,10 +85,43 @@ const deleteEspecialidad = async (req, res) => {
   }
 };
 
+// Obtencion de especialidades en base al area:
+const getEspecialidadesArea = async (req, res) => {
+  try {
+    const { linkArea, idMentor } = req.params;
+
+    console.log(linkArea, idMentor)
+
+    const connection = await getConnection();
+
+    let query = `SELECT es.*
+    FROM tmunay_areas ar, tmunay_especialidad es
+    WHERE es.estado=1 AND ar.estado=1 AND es.areas_id=ar.id`;
+    let predicado = [];
+
+    if (linkArea != null || typeof (linkArea) == 'undefined') {
+      query += " AND ar.link= ?"
+      predicado.push(linkArea)
+    }
+    const result = await connection.query(query, predicado);
+
+    const foundespecialidadsWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    res.json({ body: foundespecialidadsWithImages });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
 export const methods = {
   addEspecialidades,
   getEspecialidades,
   getEspecialidad,
   updateEspecialidad,
   deleteEspecialidad,
+
+  getEspecialidadesArea
 };

@@ -150,8 +150,7 @@ const getRegistros = async (req, res) => {
 
 const getRegistro = async (req, res) => {
   try {
-    console.log(req.params);
-    const { id } = req.params;
+    const { id } = req.body;
     const idd = desencryptar(id)
 
     const connection = await getConnection();

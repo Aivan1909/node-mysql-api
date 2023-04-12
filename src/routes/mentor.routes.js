@@ -9,6 +9,7 @@ const router = Router()
 router.post('/', multer().single('avatar'), isImage, mentorController.addMentores) //authenticate
 router.get('/muestreos', mentorController.getMentoresMuestreos)
 router.get('/muestreo/:id', mentorController.getMentoresMuestreo)
+router.get('/area/:linkArea', mentorController.getMentoresArea)
 router.get('/', mentorController.getMentores)
 router.get('/:id', mentorController.getMentor)
 
