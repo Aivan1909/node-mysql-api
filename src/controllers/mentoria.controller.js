@@ -1,6 +1,6 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
-
+import { desencryptar } from '../middleware/crypto.mld';
+const m = require('moment')
 
 const addMentorias = async (req, res) => {
   try {
@@ -8,13 +8,13 @@ const addMentorias = async (req, res) => {
     const bkMentor = req.body.mentor
     delete req.body.mentor
 
-    const bkArea = req.body.area
-    delete req.body.area
-    //Emprendimiento
-    const bkEmprendimiento = req.body.emprendimiento
-    delete req.body.emprendimiento
+    const bkTipoMentoria = req.body.tipoMentoria
+    delete req.body.tipoMentoria
 
     const mentoria = req.body;
+    mentoria.mentor_id = bkMentor
+    mentoria.usuarioCreacion = desencryptar(mentoria.usuarioCreacion)
+
     mentoria.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     mentoria.estado = 1;
     let tipo = mentoria.tipo;
@@ -27,45 +27,13 @@ const addMentorias = async (req, res) => {
 
     let cod = insertId.toString();
     let codigo;
-    if (tipo == 'D') {
-      codigo = 'D-'.concat(cod.padStart(7, 0))
-    }
-    if (tipo == 'E') {
-      codigo = 'E-'.concat(cod.padStart(7, 0))
-    }
-    await connection.query(`UPDATE tmunay_mentorias  SET tipo = ? WHERE id =?`, [codigo, insertId]);
+    codigo = bkTipoMentoria + '-'.concat(cod.padStart(7, 0))
 
-    //Insertando  el id Relacional Mentores
-    for (element of bkMentor) {
-      const idExternaMentor = {
-        mentorias_id: insertId,
-        mentores_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaMentor)
-      await connection.query(`INSERT INTO mentoria_mentor SET ?`, idExternaMentor);
-    };
-    //Insertando  el id Relacional Areas
-    for (element of bkArea) {
-      const idExternaArea = {
-        mentoria_id: insertId,
-        area_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaArea)
-      await connection.query(`INSERT INTO area_mentoria SET ?`, idExternaArea);
-    };
-
-    //Insertando  el id Relacional Emprendimiento
-    /* for (element of bkEmprendimiento) {
-      const idExternaEmprendimiento = {
-        mentorias_id: insertId,
-        emprendimiento_id: element
-      };
-      //console.log("IDS->externos ->", idExternaEmprendimiento)
-      await connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaEmprendimiento);
-    }; */
+    await connection.query(`UPDATE tmunay_mentorias  SET codigo = ? WHERE id =?`, [codigo, insertId]);
 
     res.json({ body: result });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
@@ -162,7 +130,6 @@ const getMentoriasGrupo = async (req, res) => {
 
       for (const diasMentorias of dias) {
         const { id, abreviacion, hora_inicio, hora_fin } = diasMentorias;
-        const m = require('moment')
         let diaHoy = m().isoWeekday();
         let v1;
         let diaBase = abreviacion;
@@ -172,11 +139,13 @@ const getMentoriasGrupo = async (req, res) => {
           v1 = v1 - 7;
         }
         let fecha = m().add(v1, 'days');
-        fechasMentoria.push({ id, fecha: fecha.format("YYYY/MM/DD"), hora1: hora_inicio, hora2: hora_fin });
+        fechasMentoria.push({ id, fecha: fecha.format("YYYY/MM/DD"), horas: intervaloHoras(hora_inicio, hora_fin) });
 
-        for (let i = 0; i < 3; i++) {
+        const diasMostrar = 4
+        for (let i = 0; i < diasMostrar; i++) {
           let f = m(fecha).add(7, 'days');
-          fechasMentoria.push({ id, fecha: f.format("YYYY/MM/DD"), hora1: hora_inicio, hora2: hora_fin });
+          fechasMentoria.push({ id, fecha: f.format("YYYY/MM/DD"), horas: intervaloHoras(hora_inicio, hora_fin) });
+          fecha = f
         };
       }
 
@@ -186,9 +155,7 @@ const getMentoriasGrupo = async (req, res) => {
           if (
             !unique.some(
               (obj) =>
-                obj.fecha == o.fecha &&
-                obj.hora1 == o.hora1 &&
-                obj.hora2 == o.hora2
+                obj.fecha == o.fecha
             )
           ) {
             unique.push(o);
@@ -198,13 +165,35 @@ const getMentoriasGrupo = async (req, res) => {
         []
       );
 
-      console.log(mentor_id, fechasMentoriaUnique.length > 0, mentorias.length > 0)
+      // Eliminar fechas y horas reservadas
+      const mentoriasOcupadas = await connection.query(`
+      SELECT fechaMentoria, hora_inicio
+      FROM tmunay_mentorias
+      WHERE asistencia IS NULL AND mentor_id=?`, mentor_id)
+
+      for await (const ocupada of mentoriasOcupadas) {
+        const { fechaMentoria, hora_inicio } = ocupada;
+
+        for (const fechaMentoriaU of fechasMentoriaUnique) {
+          const { fecha, horas } = fechaMentoriaU
+          console.log(fechaMentoria, fecha, hora_inicio, horas)
+          if (m(fechaMentoria, 'YYYY-MM-DD HH:mm:ss').format("YYYY/MM/DD") == fecha && horas.find(item => item != m(hora_inicio, "HH:mm").format("HH:mm"))) {
+            fechaMentoriaU.horas = horas.filter(filt => {
+              console.log('filtro', filt, m(hora_inicio, "HH:mm").format("HH:mm"))
+              return filt != m(hora_inicio, "HH:mm").format("HH:mm")
+            })
+            console.log('fechas: ', fechaMentoriaU)
+          }
+        }
+      }
+
       if (fechasMentoriaUnique.length > 0 && mentorias.length > 0)
         resultF.push({ mentores: iterator, mentorias, fechasMentoria: fechasMentoriaUnique })
     }
 
     await res.json({ body: resultF });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
@@ -309,6 +298,20 @@ const solicitudMentorias = async (req, res) => {
     res.json(error.message);
   }
 };
+
+//Auxiliar
+function intervaloHoras(ini, fin) {
+  const start = m.duration(ini, "HH:mm");
+  const end = m.duration(fin, "HH:mm");
+
+  const diff = end.subtract(start);
+  let horas = [m(ini, "HH:mm").format("HH:mm")];
+  for (let i = 1; i < diff.hours(); i++) {
+    horas.push(m(ini, "HH:mm").add(i, "hours").format("HH:mm"));
+  }
+
+  return horas;
+}
 
 
 export const methods = {

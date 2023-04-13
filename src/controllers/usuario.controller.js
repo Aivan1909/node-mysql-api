@@ -4,13 +4,9 @@ import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
 const bcrypt = require("bcrypt");
 const { getToken, getTokenData } = require("../bin/jwt");
-const _TABLA = "users";
-const _TABLA1 = "roless";
-const _TABLA2 = "tmunay_rol";
 
 const addRegistro = async (req, res) => {
   try {
-    console.log(req.body);
     const dataAdd = req.body;
     const { email, password } = dataAdd;
     const token = await getToken({ email });
@@ -21,11 +17,10 @@ const addRegistro = async (req, res) => {
           res.status(500).json({ message: "Ocurrió un error inesperado." });
         if (hashedPass) {
           dataAdd.password = hashedPass;
-          console.log(dataAdd);
 
           const connection = await getConnection();
           let result = await connection.query(
-            `INSERT INTO ${_TABLA} SET ?`,
+            `INSERT INTO users SET ?`,
             dataAdd
           );
           //insertando a la tabla relacional 
@@ -35,11 +30,11 @@ const addRegistro = async (req, res) => {
             rol_id: 4,
           };
 
-          result = await connection.query(`INSERT INTO ${_TABLA1} SET ?`, relacionRol);
+          result = await connection.query(`INSERT INTO roless SET ?`, relacionRol);
           //Insertando  a la tabla relacional 
 
           result = await connection.query(
-            `SELECT * FROM ${_TABLA} WHERE id=?`,
+            `SELECT * FROM users WHERE id=?`,
             insertId
           );
 
@@ -99,16 +94,14 @@ const login = async (req, res) => {
 const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body);
 
     const connection = await getConnection();
     await connection
-      .query(`SELECT * FROM ${_TABLA} WHERE email=?`, email)
+      .query(`SELECT * FROM users WHERE email=?`, email)
       .then((user) => {
         if (user) {
           bcrypt.compare(password, user[0].password, function (err, result) {
             if (err) {
-              console.log(err);
               return res
                 .status(500)
                 .json({ message: "Ocurrio un error inesperado" });
@@ -118,7 +111,6 @@ const loginAdmin = async (req, res) => {
               user[0].token = token;
               return res.json({ message: "Bienvenid@ ", body: user[0] });
             } else {
-              console.log(result);
               return res.status(400).json({ message: "Datos incorrectos" });
             }
           });
@@ -138,12 +130,11 @@ const getRegistros = async (req, res) => {
   try {
     const connection = await getConnection()
     const result = await connection.query(`SELECT xu.*, xr.roles, xtr.roles_desc 
-    FROM ${_TABLA} xu, (SELECT user_id, GROUP_CONCAT(DISTINCT rol_id) as roles FROM ${_TABLA1} group by user_id) as xr, 
-    (select r.user_id, GROUP_CONCAT(DISTINCT tr.nombre) as roles_desc from ${_TABLA} u, ${_TABLA1} r, ${_TABLA2} tr 
+    FROM users xu, (SELECT user_id, GROUP_CONCAT(DISTINCT rol_id) as roles FROM roless group by user_id) as xr, 
+    (select r.user_id, GROUP_CONCAT(DISTINCT tr.nombre) as roles_desc from users u, roless r, tmunay_rol tr 
     WHERE u.id=r.user_id and r.rol_id=tr.id group by r.user_id) as xtr where xu.id=xr.user_id and xr.user_id=xtr.user_id;`)
     res.json({ body: result })
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message)
   }
 };
@@ -155,9 +146,18 @@ const getRegistro = async (req, res) => {
 
     const connection = await getConnection();
     const result = await connection.query(
-      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      `SELECT id, nombre, apellidos, email, sexo, fechaNacimiento, pais, avatar, codigoTel, telefono
+      FROM users 
+      WHERE estado=1 AND id=?`,
       idd
     );
+    result[0].id = encryptar(idd);
+
+    const emprendimientos = await connection.query(`SELECT id, emprendimiento, codigo 
+    FROM tmunay_emprendimientos 
+    WHERE estado=1 AND user_id=?`, idd)
+    result[0].emprendimientos = emprendimientos;
+
     res.json({ body: result[0] });
   } catch (error) {
     res.status(500).json(error.message);
@@ -179,7 +179,7 @@ const updateRegistro = async (req, res) => {
       fechaModificacion: new Date().toDateString(),
     };
     const connection = await getConnection();
-    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [
+    const result = await connection.query(`UPDATE users SET ? WHERE id=?`, [
       alianza,
       id,
     ]);
@@ -191,11 +191,10 @@ const updateRegistro = async (req, res) => {
 
 const deleteRegistro = async (req, res) => {
   try {
-    console.log(req.params);
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(
-      `DELETE FROM ${_TABLA} WHERE id=?`,
+      `DELETE FROM users WHERE id=?`,
       id
     );
     res.json(result);
@@ -209,11 +208,11 @@ const actualizaRoles = async (req, res) => {
     const { id_user, agregar, eliminar } = req.body
     const connection = await getConnection();
     let result
-    console.log(id_user)
+    
     if (agregar.length > 0) {
       await agregar.forEach(element => {
         result = connection.query(
-          `INSERT INTO ${_TABLA1} SET user_id=?, rol_id=?`,
+          `INSERT INTO roless SET user_id=?, rol_id=?`,
           [id_user, element]
         );
       });
@@ -221,7 +220,7 @@ const actualizaRoles = async (req, res) => {
     if (eliminar.length > 0) {
       await eliminar.forEach(element => {
         result = connection.query(
-          `DELETE FROM ${_TABLA1} WHERE user_id=? and rol_id=?`,
+          `DELETE FROM roless WHERE user_id=? and rol_id=?`,
           [id_user, element]
         );
       });
@@ -240,14 +239,13 @@ const cambiarEstado = async (req, res) => {
     const connection = await getConnection();
 
     const result = connection.query(
-      `UPDATE ${_TABLA} SET estado=? where id=?`,
+      `UPDATE users SET estado=? where id=?`,
       [estado, id_user]
     );
 
     res.json({ body: result })
 
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 }
@@ -274,11 +272,9 @@ const loginGoogle = async (req, res) => {
         }
       })
       .catch((err) => {
-        console.log("400", err)
         return res.status(400).json({ message: "Datos incorrectos." });
       });
   } catch (error) {
-    console.log("500", error)
     return res.status(500).json({ message: "Ha ocurrido un error" });
   }
 }
@@ -292,7 +288,7 @@ const addRegistroGoogle = async (req) => {
 
     const connection = await getConnection();
     let result = await connection.query(
-      `INSERT INTO ${_TABLA} SET ?`,
+      `INSERT INTO users SET ?`,
       dataAdd
     );
     //insertando a la tabla relacional 
@@ -302,11 +298,11 @@ const addRegistroGoogle = async (req) => {
       rol_id: 4,
     };
 
-    result = await connection.query(`INSERT INTO ${_TABLA1} SET ?`, relacionRol);
+    result = await connection.query(`INSERT INTO roless SET ?`, relacionRol);
     //Insertando  a la tabla relacional 
 
     result = await connection.query(
-      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      `SELECT * FROM users WHERE id=?`,
       insertId
     );
 
