@@ -89,19 +89,23 @@ const deleteEspecialidad = async (req, res) => {
 const getEspecialidadesArea = async (req, res) => {
   try {
     const { linkArea, idMentor } = req.params;
-
-    console.log(linkArea, idMentor)
+    const { mentores } = req.body;
+    console.log(mentores)
 
     const connection = await getConnection();
 
     let query = `SELECT es.*
-    FROM tmunay_areas ar, tmunay_especialidad es
+    FROM tmunay_areas ar, tmunay_especialidad es, dicta_mentoria dm
     WHERE es.estado=1 AND ar.estado=1 AND es.areas_id=ar.id`;
     let predicado = [];
 
     if (linkArea != null || typeof (linkArea) == 'undefined') {
       query += " AND ar.link= ?"
       predicado.push(linkArea)
+
+      if (typeof (mentores) != 'undefined') {
+        query += " AND dm.especialidad_id = es.id"
+      }
     }
     const result = await connection.query(query, predicado);
 
@@ -111,6 +115,7 @@ const getEspecialidadesArea = async (req, res) => {
 
     res.json({ body: foundespecialidadsWithImages });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }

@@ -97,6 +97,7 @@ const getMentoriasEmprendedor = async (req, res) => {
 
 const getMentoriasGrupo = async (req, res) => {
   const { tipo, mentoria, mentor } = req.params;
+  console.log(tipo, mentoria, mentor)
 
   try {
     const connection = await getConnection();
@@ -120,9 +121,14 @@ const getMentoriasGrupo = async (req, res) => {
       WHERE dm.especialidad_id = esp.id and esp.areas_id = ar.id and dm.mentor_id = ?`
       let predicado2 = [mentor_id]
 
-      if (typeof (tipo) != 'undefined' && tipo != '' && tipo != '0') {
+      if (typeof (tipo) != 'undefined' && tipo != '' && tipo != 'all') {
         sql2 += " AND ar.tipo = ?"
         predicado2.push(tipo)
+
+        if (typeof (mentoria) != 'undefined' && mentoria != '' && mentoria != 'all') {
+          sql2 += " AND esp.link = ?"
+          predicado2.push(mentoria)
+        }
       }
       const mentorias = await connection.query(sql2, predicado2);
 
@@ -176,13 +182,10 @@ const getMentoriasGrupo = async (req, res) => {
 
         for (const fechaMentoriaU of fechasMentoriaUnique) {
           const { fecha, horas } = fechaMentoriaU
-          console.log(fechaMentoria, fecha, hora_inicio, horas)
           if (m(fechaMentoria, 'YYYY-MM-DD HH:mm:ss').format("YYYY/MM/DD") == fecha && horas.find(item => item != m(hora_inicio, "HH:mm").format("HH:mm"))) {
             fechaMentoriaU.horas = horas.filter(filt => {
-              console.log('filtro', filt, m(hora_inicio, "HH:mm").format("HH:mm"))
               return filt != m(hora_inicio, "HH:mm").format("HH:mm")
             })
-            console.log('fechas: ', fechaMentoriaU)
           }
         }
       }
@@ -193,7 +196,6 @@ const getMentoriasGrupo = async (req, res) => {
 
     await res.json({ body: resultF });
   } catch (error) {
-    console.log(error)
     res.status(500);
     res.json(error.message);
   }

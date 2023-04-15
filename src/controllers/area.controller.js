@@ -86,10 +86,27 @@ const deleteArea = async (req, res) => {
   }
 };
 
+const getAreasMuestreo = async (req, res) => {
+  try {
+    const connection = await getConnection();
+    const reAreas = await connection.query(`SELECT DISTINCT ar.* 
+    FROM tmunay_areas ar, tmunay_especialidad esp, dicta_mentoria dm
+    WHERE ar.estado = 1 and esp.estado = 1 and esp.areas_id=ar.id and dm.especialidad_id=esp.id`);
+
+    res.json({ body: reAreas });
+  } catch (error) {
+    console.log(error)
+    res.status(500);
+    res.json(error.message);
+  }
+};
+
 export const methods = {
   addAreas,
   getAreas,
   getArea,
   updateArea,
   deleteArea,
+
+  getAreasMuestreo
 };

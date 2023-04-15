@@ -7,8 +7,8 @@ import multer from 'multer';
 const router = Router()
 
 router.post('/', multer().single('imagen'), isImage, especialidadController.addEspecialidades) //authenticate
+router.post('/area/:linkArea?/:idMentor?', especialidadController.getEspecialidadesArea)
 router.get('/', especialidadController.getEspecialidades)
-router.get('/area/:linkArea?/:idMentor?', especialidadController.getEspecialidadesArea)
 router.get('/:id', especialidadController.getEspecialidad)
 router.put('/:id', multer().single('imagen'), isImage, especialidadController.updateEspecialidad)
 router.delete('/:id', especialidadController.deleteEspecialidad)
