@@ -1,4 +1,3 @@
-import { json } from "body-parser";
 import { getConnection } from "../database/database";
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
@@ -17,6 +16,7 @@ const addRegistro = async (req, res) => {
           res.status(500).json({ message: "Ocurrió un error inesperado." });
         if (hashedPass) {
           dataAdd.password = hashedPass;
+          dataAdd.estado = 2
 
           const connection = await getConnection();
           let result = await connection.query(
@@ -208,7 +208,7 @@ const actualizaRoles = async (req, res) => {
     const { id_user, agregar, eliminar } = req.body
     const connection = await getConnection();
     let result
-    
+
     if (agregar.length > 0) {
       await agregar.forEach(element => {
         result = connection.query(
@@ -284,7 +284,7 @@ const addRegistroGoogle = async (req) => {
     const dataAdd = req.body;
     const { email } = dataAdd;
     const token = await getToken({ email });
-
+    dataAdd.estado = 2;
 
     const connection = await getConnection();
     let result = await connection.query(
