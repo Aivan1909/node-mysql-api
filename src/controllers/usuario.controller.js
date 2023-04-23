@@ -97,7 +97,9 @@ const loginAdmin = async (req, res) => {
 
     const connection = await getConnection();
     await connection
-      .query(`SELECT * FROM users WHERE email=?`, email)
+      .query(`SELECT * 
+    FROM users us, roless r, tmunay_rol mr
+    WHERE mr.id=r.rol_id AND us.id=r.user_id AND mr.nombre='admin' AND us.google_login = 0 AND us.email=?`, email)
       .then((user) => {
         if (user) {
           bcrypt.compare(password, user[0].password, function (err, result) {
@@ -279,6 +281,36 @@ const loginGoogle = async (req, res) => {
   }
 }
 
+const loginAdminGoogle = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const connection = await getConnection();
+    await connection
+      .query(`SELECT * 
+      FROM users us, roless r, tmunay_rol mr
+      WHERE mr.id=r.rol_id AND us.id=r.user_id AND mr.nombre='admin' AND us.google_login = 1 AND us.email=?`, email)
+      .then(async (user) => {
+        if (user.length > 0) {
+
+          const { id } = user[0]
+          const token = getToken({ email });
+          user[0].token = token;
+          user[0].id = encryptar(id);
+
+          return res.json({ message: "Bienvenid@ ", body: user[0] });
+        } else {
+          return res.status(400).json({ message: "Datos incorrectos." });
+        }
+      })
+      .catch((err) => {
+        return res.status(400).json({ message: "Datos incorrectos." });
+      });
+  } catch (error) {
+    return res.status(500).json({ message: "Ha ocurrido un error" });
+  }
+}
+
 const addRegistroGoogle = async (req) => {
   try {
     const dataAdd = req.body;
@@ -323,5 +355,6 @@ export const methods = {
   loginAdmin,
   actualizaRoles,
   cambiarEstado,
-  loginGoogle
+  loginGoogle,
+  loginAdminGoogle
 };

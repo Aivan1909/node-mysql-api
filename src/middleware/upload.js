@@ -61,7 +61,7 @@ function getOneFile(pathFile) {
   try {
     return `data:image/jpeg;base64, ${fs.readFileSync(pathFile, { encoding: 'base64' })}`;
   } catch (error) {
-    return '';
+    return pathFile;
   }
 }
 /*

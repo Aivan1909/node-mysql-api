@@ -45,9 +45,10 @@ const getMentores = async (req, res) => {
     const connection = await getConnection();
     const reMentores = await connection.query(`
     SELECT us.nombre, us.apellidos, us.email, us.sexo, us.avatar, us.pais, us.codigoTel, us.telefono, 
-    me.id, me.user_id, me.online, me.institucion_id, ins.nombre nombreInstitucion
+    me.id, me.user_id, me.online, me.institucion_id, ins.nombre nombreInstitucion,
+    me.fechaCreacion, me.estado
     FROM tmunay_mentores me, users us, tmunay_instituciones ins
-    WHERE me.estado=1 and me.user_id=us.id and ins.id=me.institucion_id`);
+    WHERE me.user_id=us.id and ins.id=me.institucion_id`);
 
     const reMentoresImage = [...reMentores].map((item) => {
       return { ...item, file: getOneFile(item.avatar) };
@@ -59,6 +60,12 @@ const getMentores = async (req, res) => {
       WHERE me.id=dm.mentor_id AND dm.especialidad_id=es.id and me.id=?`, mentor.id)
 
       mentor.especialidades = reEspecialidades.map((item) => item.nombre)
+
+      const reHorarios = await connection.query(`SELECT di.descripcion, di.abreviacion, hm.* 
+      FROM horario_mentor hm, tmunay_dias di 
+      WHERE hm.dia_id=di.id and hm.mentores_id=?`, mentor.id)
+
+      mentor.horarios = reHorarios
     }
 
     res.json({ body: reMentoresImage });
@@ -86,10 +93,6 @@ const getMentoresMuestreos = async (req, res) => {
       FROM horario_mentor hm, tmunay_dias d
       WHERE hm.dia_id = d.id and hm.mentores_id= ?`
       const dias = await connection.query(sql1, mentor_id);
-      /* let sql1 = `SELECT xd.mentor_id , hm.hora_inicio as hora1Mentoria, hm.hora_fin as hora2Mentoria, 
-      xt.nombre as nombreArea, xe.nombre as nombreEspecialidad,xm.estado 
-      FROM dicta_mentoria xd, tmunay_mentores xm , tmunay_especialidad xe, tmunay_areas xt, horario_mentor hm
-      WHERE xd.mentor_id = xm.id and xd.especialidad_id = xe.id and xe.areas_id = xt.id and hm.mentores_id=xd.mentor_id and xd.mentor_id = ?`; */
 
       let sql2 = `SELECT esp.areas_id, ar.nombre, dm.especialidad_id, esp.nombre
       FROM dicta_mentoria dm, tmunay_especialidad esp, tmunay_areas ar

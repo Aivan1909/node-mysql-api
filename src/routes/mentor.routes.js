@@ -13,10 +13,8 @@ router.get('/area/:linkArea', mentorController.getMentoresArea)
 router.get('/', mentorController.getMentores)
 router.get('/:id', mentorController.getMentor)
 
-
 router.put('/:id', multer().single('avatar'), isImage, mentorController.updateMentor)
 router.delete('/:id', mentorController.deleteMentor)
-
 
 
 export default router;

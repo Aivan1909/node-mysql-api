@@ -42,7 +42,10 @@ const addMentorias = async (req, res) => {
 const getMentorias = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_mentorias`);
+    const result = await connection.query(`
+    SELECT me.*, em.emprendimiento, es.nombre 'especialidad', us.nombre 'nombresMentor', us.apellidos 'apellidosMentor'
+    FROM tmunay_mentorias me, tmunay_emprendimientos em, tmunay_especialidad es, tmunay_mentores myme, users us
+    WHERE me.emprendimiento_id=em.id AND me.especialidad_id=es.id AND me.mentor_id=myme.id and myme.user_id=us.id`);
     res.json({ body: result });
   } catch (error) {
     res.status(500);
