@@ -132,12 +132,66 @@ const addEmprendimiento = async (req, res) => {
 const getEmprendimientos = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_emprendimientos`);
+    const result = await connection.query(`
+    SELECT em.*, de.descripcion departamentoDescripcion, fi.descripcion figuraDescripcion, fa.descripcion faseDescripcion
+    FROM tmunay_departamentos de
+    , tmunay_emprendimientos em
+    LEFT JOIN tmunay_figuras fi ON em.figuras_id=fi.id
+    LEFT JOIN tmunay_fases fa ON em.fases_id=fa.id
+    WHERE em.departamento_id=de.id;`);
     const foundEmprendimientosWithImages = [...result].map((item) => {
-      return { ...item, file: getOneFile(item.imagen) };
+      return { ...item, imgLogo: getOneFile(item.logo), imgPortada: getOneFile(item.portada) };
     });
+
+    for await (const emprendimiento of foundEmprendimientosWithImages) {
+      // Obtener Suscripciones
+      emprendimiento.suscripciones = await connection.query(`
+        SELECT xpl.*, xsu.fechaInicio, xsu.fechaFin 
+        FROM tmunay_suscripcion xsu, tmunay_planes xpl
+        WHERE xsu.plan_id=xpl.id AND xsu.emprendimiento_id=?`, emprendimiento.id)
+
+      // Obtener ODS's
+      const bkOds = await connection.query(`
+        SELECT xeo.*, xod.descripcion, xod.imagen, xod.imagenEN 
+        FROM emprendimientos_ods xeo, tmunay_ods xod
+        WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
+
+      emprendimiento.ods = [...bkOds].map((item) => {
+        return { ...item, imgImagen: getOneFile(item.imagen), imgimagenEN: getOneFile(item.imagenEN) }
+      })
+
+      // Obtener Sectores
+      emprendimiento.sectores = await connection.query(`
+        SELECT xse.* 
+        FROM emprendimientos_sector xes, tmunay_sectores xse
+        WHERE xes.sectores_id=xse.id AND xes.emprendimiento_id=?`, emprendimiento.id)
+
+      // Obtener Donaciones
+      emprendimiento.donaciones = await connection.query(`
+        SELECT xdo.* 
+        FROM donacion_emprendimiento xde, tmunay_donacion xdo
+        WHERE xde.donacion_id=xdo.id AND xde.emprendimiento_id=?`, emprendimiento.id)
+
+      // Obtener Comentarios
+      emprendimiento.comentarios = await connection.query(`
+        SELECT xco.*, xus.nombre, xus.apellidos
+        FROM tmunay_comentarios xco, users xus
+        WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
+
+      // Obtener Campañas
+      const bkCampanas = await connection.query(`
+      SELECT xca.*
+      FROM tmunay_campanas xca
+      WHERE xca.emprendimiento_id=?`, emprendimiento.id)
+
+      emprendimiento.campanas = [...bkCampanas].map((item) => {
+        return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
+      })
+    }
+
     res.json({ body: foundEmprendimientosWithImages });
   } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
@@ -221,14 +275,34 @@ const deleteEmprendimiento = async (req, res) => {
 const cambiarEstado = async (req, res) => {
   try {
     const { id } = req.params
-    const { estado } = req.body
+    const { estado, sectores, ods } = req.body
     const connection = await getConnection();
 
+    /* Actualizamos estado */
     const result = connection.query(
       `UPDATE tmunay_emprendimientos SET estado=? where id=?`,
       [estado, id]
     );
-    console.log()
+
+    // En caso de aceptar, se debe ingresar los valores de ODS y Sectores
+    if (sectores != null && sectores?.length > 0) {
+      for await (const item of sectores) {
+        const newSector = {
+          emprendimiento_id: id,
+          sectores_id: item
+        }
+        await connection.query(`INSERT INTO emprendimientos_sector SET ?`, newSector)
+      }
+    }
+    if (ods != null && ods?.length > 0) {
+      for await (const item of ods) {
+        const newODS = {
+          emprendimiento_id: id,
+          ods_id: item
+        }
+        await connection.query(`INSERT INTO emprendimientos_ods SET ?`, newODS)
+      }
+    }
 
     res.json({ body: result })
 
