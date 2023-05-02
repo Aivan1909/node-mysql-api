@@ -97,9 +97,9 @@ const loginAdmin = async (req, res) => {
 
     const connection = await getConnection();
     await connection
-      .query(`SELECT * 
-    FROM users us, roless r, tmunay_rol mr
-    WHERE mr.id=r.rol_id AND us.id=r.user_id AND mr.nombre='admin' AND us.google_login = 0 AND us.email=?`, email)
+      .query(`SELECT us.* 
+      FROM users us, roless r, tmunay_rol mr
+      WHERE mr.id=r.rol_id AND us.id=r.user_id AND mr.nombre='admin' AND us.google_login = 0 AND us.email=?`, email)
       .then((user) => {
         if (user) {
           bcrypt.compare(password, user[0].password, function (err, result) {
@@ -287,7 +287,7 @@ const loginAdminGoogle = async (req, res) => {
 
     const connection = await getConnection();
     await connection
-      .query(`SELECT * 
+      .query(`SELECT us.* 
       FROM users us, roless r, tmunay_rol mr
       WHERE mr.id=r.rol_id AND us.id=r.user_id AND mr.nombre='admin' AND us.google_login = 1 AND us.email=?`, email)
       .then(async (user) => {
