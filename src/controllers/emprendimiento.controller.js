@@ -157,7 +157,7 @@ const getEmprendimientos = async (req, res) => {
         WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
 
       emprendimiento.ods = [...bkOds].map((item) => {
-        return { ...item, imgImagen: getOneFile(item.imagen), imgimagenEN: getOneFile(item.imagenEN) }
+        return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
       })
 
       // Obtener Sectores
@@ -187,6 +187,21 @@ const getEmprendimientos = async (req, res) => {
       emprendimiento.campanas = [...bkCampanas].map((item) => {
         return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
       })
+
+      // Obtener Criterios de enfoque
+      const bkCriterios = await connection.query(`
+      SELECT xcr.*
+      FROM tmunay_criterios xcr, criterios_emprendimientos cem
+      WHERE cem.criterios_id=xcr.id AND cem.emprendimiento_id=?`, emprendimiento.id)
+
+      emprendimiento.criterios = [...bkCriterios].map((item) => {
+        return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
+      })
+
+      // Extraer porcentajes en cantidad de mujeres
+      emprendimiento.porcFundadoras = await Math.round((Number(emprendimiento.mujeresFundadoras) / Number(emprendimiento.fundadores)) * 100, -1)
+      emprendimiento.porcTomaDesicion = await Math.round((Number(emprendimiento.mujeresTomaDesicion) / Number(emprendimiento.tomaDesicion)) * 100, -1)
+      emprendimiento.porcEmpleadas = await Math.round((Number(emprendimiento.mujeresEmpleadas) / Number(emprendimiento.empleados)) * 100, -1)
     }
 
     res.json({ body: foundEmprendimientosWithImages });
@@ -206,6 +221,85 @@ const getEmprendimiento = async (req, res) => {
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });
   } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
+};
+
+const getEmprendimientoNombre = async (req, res) => {
+  try {
+    const { nombre } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM tmunay_emprendimientos WHERE link=?`, nombre);
+
+    const bkEmprendimiento = [...result].map((item) => {
+      return { ...item, imgLogo: getOneFile(item.logo), imgPortada: getOneFile(item.portada) };
+    });
+
+    const emprendimiento = bkEmprendimiento[0]
+
+    // Obtener Suscripciones
+    emprendimiento.suscripciones = await connection.query(`
+    SELECT xpl.*, xsu.fechaInicio, xsu.fechaFin 
+    FROM tmunay_suscripcion xsu, tmunay_planes xpl
+    WHERE xsu.plan_id=xpl.id AND xsu.emprendimiento_id=?`, emprendimiento.id)
+
+    // Obtener ODS's
+    const bkOds = await connection.query(`
+    SELECT xeo.*, xod.descripcion, xod.imagen, xod.imagenEN 
+    FROM emprendimientos_ods xeo, tmunay_ods xod
+    WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
+
+    emprendimiento.ods = [...bkOds].map((item) => {
+      return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
+    })
+
+    // Obtener Sectores
+    emprendimiento.sectores = await connection.query(`
+    SELECT xse.* 
+    FROM emprendimientos_sector xes, tmunay_sectores xse
+    WHERE xes.sectores_id=xse.id AND xes.emprendimiento_id=?`, emprendimiento.id)
+
+    // Obtener Donaciones
+    emprendimiento.donaciones = await connection.query(`
+    SELECT xdo.* 
+    FROM donacion_emprendimiento xde, tmunay_donacion xdo
+    WHERE xde.donacion_id=xdo.id AND xde.emprendimiento_id=?`, emprendimiento.id)
+
+    // Obtener Comentarios
+    emprendimiento.comentarios = await connection.query(`
+    SELECT xco.*, xus.nombre, xus.apellidos
+    FROM tmunay_comentarios xco, users xus
+    WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
+
+    // Obtener Campañas
+    const bkCampanas = await connection.query(`
+    SELECT xca.*
+    FROM tmunay_campanas xca
+    WHERE xca.emprendimiento_id=?`, emprendimiento.id)
+
+    emprendimiento.campanas = [...bkCampanas].map((item) => {
+      return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
+    })
+
+    // Obtener Criterios de enfoque
+    const bkCriterios = await connection.query(`
+    SELECT xcr.*
+    FROM tmunay_criterios xcr, criterios_emprendimientos cem
+    WHERE cem.criterios_id=xcr.id AND cem.emprendimiento_id=?`, emprendimiento.id)
+
+    emprendimiento.criterios = [...bkCriterios].map((item) => {
+      return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
+    })
+
+    // Extraer porcentajes en cantidad de mujeres
+    emprendimiento.porcFundadoras = await obtenerPorcentaje(emprendimiento.mujeresFundadoras, emprendimiento.fundadores)
+    emprendimiento.porcTomaDesicion = await obtenerPorcentaje(emprendimiento.mujeresTomaDesicion, emprendimiento.tomaDesicion)
+    emprendimiento.porcEmpleadas = await obtenerPorcentaje(emprendimiento.mujeresEmpleadas, emprendimiento.empleados)
+
+    res.json({ body: emprendimiento });
+  } catch (error) {
+    console.log(error)
     res.status(500);
     res.json(error.message);
   }
@@ -349,13 +443,63 @@ const emailSender = async (destinatario, asunto, textEmail) => {
   return responseEmail;
 }
 
+const validarCriterios = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    const connection = await getConnection();
+    const emprendimiento = await connection.query(`SELECT * FROM tmunay_emprendimientos WHERE id=?`, id)
+
+    const { mujeresFundadoras, fundadores, mujeresTomaDesicion, tomaDesicion, mujeresEmpleadas, empleados } = emprendimiento[0]
+
+    const porcFundadoras = await obtenerPorcentaje(mujeresFundadoras, fundadores)
+    const porcTomaDesicion = await obtenerPorcentaje(mujeresTomaDesicion, tomaDesicion)
+    const porcEmpleadas = await obtenerPorcentaje(mujeresEmpleadas, empleados)
+
+    const mujeres = Number(mujeresFundadoras) + Number(mujeresTomaDesicion) + Number(mujeresEmpleadas)
+    const totales = Number(fundadores) + Number(tomaDesicion) + Number(empleados)
+    const porcPersonalMujeres = await obtenerPorcentaje(mujeres, totales);
+
+    let criteriosEmprendimiento = []
+    if (porcFundadoras >= 51)
+      criteriosEmprendimiento.push(1)
+    if (porcTomaDesicion >= 30)
+      criteriosEmprendimiento.push(2)
+    if (porcPersonalMujeres >= 40)
+      criteriosEmprendimiento.push(3)
+
+    console.log(Number(fundadores), Number(tomaDesicion), Number(empleados))
+    await connection.query(`DELETE FROM criterios_emprendimientos WHERE emprendimiento_id = ?`, id)
+    for (const criterio of criteriosEmprendimiento) {
+      const nuevoCriterio = {
+        emprendimiento_id: id,
+        criterios_id: criterio
+      }
+      await connection.query(`INSERT INTO criterios_emprendimientos SET ?`, nuevoCriterio)
+    }
+
+    res.json({ body: emprendimiento });
+  } catch (error) {
+    console.log(error)
+    res.status(500);
+    res.json(error.message);
+  }
+}
+
+/* Funciones */
+function obtenerPorcentaje(campo1, campo2) {
+  return Math.round((Number(campo1) / Number(campo2)) * 100, -1)
+}
+
 export const methods = {
   addEmprendimiento,
   getEmprendimientos,
   getEmprendimiento,
+  getEmprendimientoNombre,
   getEmprendimientoUser,
   updateEmprendimiento,
   deleteEmprendimiento,
   cambiarEstado,
   sendEmail,
+  validarCriterios
 };

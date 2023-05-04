@@ -8,8 +8,10 @@ const router = Router();
 
 router.post('/', multer().any(), isImage, emprendimientoController.addEmprendimiento);
 router.post('/usuario', emprendimientoController.getEmprendimientoUser);
+router.post('/validarCriterio', emprendimientoController.validarCriterios);
 router.get('/', emprendimientoController.getEmprendimientos);
 router.get('/:id', emprendimientoController.getEmprendimiento);
+router.get('/nombre/:nombre', emprendimientoController.getEmprendimientoNombre);
 router.put('/:id', multer().any(), emprendimientoController.updateEmprendimiento);
 router.delete('/:id', emprendimientoController.deleteEmprendimiento);
 router.put('/cambiarEstado/:id', emprendimientoController.cambiarEstado);
