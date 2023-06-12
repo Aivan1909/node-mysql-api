@@ -45,7 +45,13 @@ const getInicio = async (req, res) => {
 
     const topEmpre = await obtenerEmprendimientos()
 
-    const result = { 'testimonio': foundTestimoniosWithImages, 'impacto': [emprendimiento[0], mentoria[0], campana[0]], emprendimientos: topEmpre }
+    const sql6 = await connection.query(`SELECT tme.*, CONCAT(us.nombre, " ", us.apellidos) nombres, us.email
+    FROM tmunay_equipo tme, users us
+    WHERE tme.user_id=us.id and tme.munayense=1`)
+
+    const munayenses = [...sql6].map(item => { return { ...item, file: getOneFile(item.imagen) } })
+
+    const result = { 'testimonio': foundTestimoniosWithImages, 'impacto': [emprendimiento[0], mentoria[0], campana[0]], emprendimientos: topEmpre, munayenses }
 
     res.json({ body: result })
   } catch (error) {
@@ -62,32 +68,41 @@ const getSobreMunay = async (req, res) => {
 
     let sql1 = `SELECT  CONCAT(A.nombre,' ',A.apellidos) AS nombre, B.cargo, B.imagen, B.redSocial 
     FROM users A, tmunay_equipo B 
-    where A.id = B.user_id`
+    where A.id = B.user_id
+    ORDER BY B.munayense DESC`
     const equipo = await connection.query(sql1)
     const foundEquiposWithImages = await [...equipo].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
 
-    let sql2 = `SELECT concat(nombres,' ',apellidos) AS nombre, cargo, redSocial,imagen FROM tmunay_asesor`
+    let sql2 = `SELECT concat(nombres,' ',apellidos) AS nombre, cargo, redSocial,imagen FROM tmunay_asesor where estado=1`
     const asesor = await connection.query(sql2)
 
-    let sql3 = `SELECT nombre,imagen FROM tmunay_trayectoria`
+    const foundAsesoresWithImages = await [...asesor].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    let sql3 = `SELECT nombre,imagen FROM tmunay_trayectoria where estado=1`
     const trayectoria = await connection.query(sql3)
 
-    let sql4 = `SELECT nombre, imagen, enlace FROM tmunay_colaboradores`
+    const foundTrayectoriaWithImages = await [...trayectoria].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+
+    let sql4 = `SELECT nombre, imagen, enlace FROM tmunay_colaboradores where estado=1`
     const colaborador = await connection.query(sql4)
     const foundColaboradoresWithImages = await [...colaborador].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
 
-    let sql5 = `SELECT nombre, imagen FROM tmunay_alianzas`
+    let sql5 = `SELECT nombre, imagen FROM tmunay_alianzas where estado=1`
     const alianza = await connection.query(sql5)
     const foundAlianzasWithImages = await [...alianza].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
 
     //const result = {}[equipo,asesor,trayectoria,colaborador,alianza]
-    const result = { 'equipo': foundEquiposWithImages, 'asesor': asesor, 'trayectoria': trayectoria, 'colaborador': foundColaboradoresWithImages, 'alianza': foundAlianzasWithImages }
+    const result = { 'equipo': foundEquiposWithImages, 'asesor': foundAsesoresWithImages, 'trayectoria': foundTrayectoriaWithImages, 'colaborador': foundColaboradoresWithImages, 'alianza': foundAlianzasWithImages }
 
     res.json({ body: result })
   } catch (error) {

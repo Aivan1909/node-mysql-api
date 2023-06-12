@@ -20,7 +20,7 @@ const getPublicaciones = async (req, res) => {
   try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM tmunay_publicacion where estado = 1`);
-    
+
     res.json({ body: result });
   } catch (error) {
     res.status(500);
@@ -43,9 +43,13 @@ const getPublicacion = async (req, res) => {
 const updatePublicacion = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, enlaceES, enlaceEN, usuarioModificacion } = req.body;
+    delete req.body.id
+    delete req.body.usuarioCreacion
+    delete req.body.fechaCreacion
+
+    const { titulo } = req.body;
     if (titulo === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const publicacion = { titulo, enlaceES, enlaceEN, usuarioModificacion };
+    const publicacion = req.body;
     publicacion.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_publicacion SET ? WHERE id=?`, [publicacion, id]);

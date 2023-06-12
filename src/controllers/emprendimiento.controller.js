@@ -5,8 +5,6 @@ import { encryptar, desencryptar } from '../middleware/crypto.mld';
 const sgMail = require('@sendgrid/mail');
 const config = require('../config');
 
-const _TABLA2 = 'emprendimientos_sector';
-const _TABLA5 = 'emprendimientos_medios';
 
 const addEmprendimiento = async (req, res) => {
   try {
@@ -70,7 +68,7 @@ const addEmprendimiento = async (req, res) => {
         sectores_id: element
       };
       //console.log("IDS->externos ->" , idExternaSector)
-      connection.query(`INSERT INTO ${_TABLA2} SET ?`, idExternaSector);
+      connection.query(`INSERT INTO emprendimientos_sector SET ?`, idExternaSector);
     };
 
     //Insertando  el id Relacional Criterios 
@@ -99,7 +97,7 @@ const addEmprendimiento = async (req, res) => {
         medio_id: element
       };
       //console.log("IDS->externos ->" , idExternaMedios)
-      connection.query(`INSERT INTO ${_TABLA5} SET ?`, idExternaMedios);
+      connection.query(`INSERT INTO emprendimientos_medios SET ?`, idExternaMedios);
     };
     //Insertando  el id Relacional Suscripcion 
     /* await bkSuscripcion.forEach(element => {

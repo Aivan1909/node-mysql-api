@@ -1,6 +1,7 @@
 import { getConnection } from "../database/database";
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
+
 const bcrypt = require("bcrypt");
 const { getToken, getTokenData } = require("../bin/jwt");
 
@@ -8,45 +9,45 @@ const addRegistro = async (req, res) => {
   try {
     const dataAdd = req.body;
     const { email, password } = dataAdd;
-    const token = await getToken({ email });
 
     if (password != null) {
-      await bcrypt.hash(password, 5, async function (err, hashedPass) {
-        if (err)
-          res.status(500).json({ message: "Ocurrió un error inesperado." });
-        if (hashedPass) {
-          dataAdd.password = hashedPass;
-          dataAdd.estado = 2
+      const hashedPass = await bcrypt.hash(password, 5)
 
-          const connection = await getConnection();
-          let result = await connection.query(
-            `INSERT INTO users SET ?`,
-            dataAdd
-          );
-          //insertando a la tabla relacional 
-          const { insertId } = result;
-          const relacionRol = {
-            user_id: insertId,
-            rol_id: 4,
-          };
+      dataAdd.password = hashedPass;
+      dataAdd.estado = 2
 
-          result = await connection.query(`INSERT INTO roless SET ?`, relacionRol);
-          //Insertando  a la tabla relacional 
+      dataAdd.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+      dataAdd.usuarioCreacion = dataAdd.usuarioCreacion ? dataAdd.usuarioCreacion : "";
 
-          result = await connection.query(
-            `SELECT * FROM users WHERE id=?`,
-            insertId
-          );
+      const connection = await getConnection();
+      let result = await connection.query(
+        `INSERT INTO users SET ?`,
+        dataAdd
+      );
+      //insertando a la tabla relacional 
+      const { insertId } = result;
+      const relacionRol = {
+        user_id: insertId,
+        rol_id: 4,
+      };
 
-          result[0].token = token;
-          res.json({ body: result[0] });
-        }
-      });
+      result = await connection.query(`INSERT INTO roless SET ?`, relacionRol);
+      //Insertando  a la tabla relacional 
+
+      result = await connection.query(
+        `SELECT * FROM users WHERE id=?`,
+        insertId
+      );
+
+      const token = await getToken({ email });
+      result[0].token = token;
+      res.json({ body: result[0] });
     }
   } catch (error) {
     const { code } = error;
-    if (code === "ER_DUP_ENTRY")
-      res.status(422).json({ message: `El correo ${email} ya existe.` });
+
+    if (code == "ER_DUP_ENTRY")
+      res.status(422).json({ message: `El correo ya existe.` });
     else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
