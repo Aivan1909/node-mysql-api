@@ -111,13 +111,24 @@ const getSobreMunay = async (req, res) => {
     res.json(error.message)
   }
 }
+// Muestreo Emprendimientos - Pag Web
+const getMuestreoEmprendimiento = async (req, res) => {
+  try {
+
+    const result = await obtenerEmprendimientos()
+    res.json({ body: result })
+  } catch (error) {
+    res.status(500)
+    res.json(error.message)
+  }
+}
 
 //Muestreo Mentores [Solicita tu mentoria]
 const getNuestrosMentores = async (req, res) => {
   try {
     const connection = await getConnection();
     // Areas
-    let sql1 = `select * from tmunay_areas where estado =1 and tipo ='E'`;
+    let sql1 = `select * from tmunay_areas where estado = 1 and tipo ='E'`;
     let reAreas = await connection.query(sql1);
 
     for (const area of reAreas) {
@@ -144,6 +155,8 @@ const getNuestrosMentores = async (req, res) => {
   }
 }
 
+
+
 //Muestreo User - Admin 1 
 const getMuestreoUser = async (req, res) => {
   try {
@@ -152,18 +165,6 @@ const getMuestreoUser = async (req, res) => {
     let sql1 = `SELECT id, estado, email as Correo, apellidos, nombre, fechaCreacion  FROM users `
     const usuario = await connection.query(sql1)
     const result = usuario
-    res.json({ body: result })
-  } catch (error) {
-    res.status(500)
-    res.json(error.message)
-  }
-}
-
-// Muestreo Emprendimiento - Admin 2 
-const getMuestreoEmprendimiento = async (req, res) => {
-  try {
-
-    const result = await obtenerEmprendimientos()
     res.json({ body: result })
   } catch (error) {
     res.status(500)
@@ -396,14 +397,6 @@ const getMuestreoAlianzas = async (req, res) => {
     res.json(error.message)
   }
 }
-
-//let sql2 = `SELECT nombre,testimonio,imagen FROM tmunay_testimonios`
-//const testimonio = await connection.query(sql2)
-
-//Obteniendo 
-//const foundTestimoniosWithImages = [...testimonio].map((item) => {
-//  return { ...item, file: getOneFile(item.imagen) };
-//});
 
 //Muestreo de modal  emprendimientos 
 const getModalEmprendimientos = async (req, res) => {

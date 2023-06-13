@@ -18,8 +18,8 @@ const addEmprendimiento = async (req, res) => {
 
     const Emprendimiento = req.body;
     //ID de usuario al que corresponde el emprendimiento
+    Emprendimiento.usuarioCreacion = desencryptar(req.body.usuarioCreacion)
     Emprendimiento.user_id = desencryptar(req.body.user_id)
-    delete req.body.user_id
 
     Emprendimiento.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     Emprendimiento.estado = 2; // Estado Pendiente, debe ser aprobado por Admin
@@ -175,6 +175,12 @@ const getEmprendimientos = async (req, res) => {
         SELECT xco.*, xus.nombre, xus.apellidos
         FROM tmunay_comentarios xco, users xus
         WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
+
+      // Obtener Medios
+      emprendimiento.medios = await connection.query(`
+      SELECT tm.id, tm.redSocial medio
+      FROM emprendimientos_medios em, tmunay_medios tm 
+      WHERE tm.id=em.medio_id AND em.emprendimiento_id=?`, emprendimiento.id)
 
       // Obtener Campañas
       const bkCampanas = await connection.query(`
@@ -376,6 +382,21 @@ const cambiarEstado = async (req, res) => {
       [estado, id]
     );
 
+    if (estado == 1) {
+      // Creamos el link para el emprendimiento
+      const emprendimientoFind = await connection.query(
+        `SELECT link, emprendimiento from tmunay_emprendimientos where id=?`, id
+      );
+
+      if (emprendimientoFind[0]?.link != 'null' && emprendimientoFind[0]?.link != '') {
+        const link = crearLink(emprendimientoFind[0]?.emprendimiento)
+        connection.query(
+          `UPDATE tmunay_emprendimientos SET link=? where id=?`,
+          [link, id]
+        );
+      }
+    }
+
     // En caso de aceptar, se debe ingresar los valores de ODS y Sectores
     if (sectores != null && sectores?.length > 0) {
       for await (const item of sectores) {
@@ -487,6 +508,27 @@ const validarCriterios = async (req, res) => {
 /* Funciones */
 function obtenerPorcentaje(campo1, campo2) {
   return Math.round((Number(campo1) / Number(campo2)) * 100, -1)
+}
+function crearLink(nombre) {
+  // Replace Spanish characters with normal letters
+  const replacedString = nombre
+    .replace(/[áä]/g, 'a')
+    .replace(/[éë]/g, 'e')
+    .replace(/[íï]/g, 'i')
+    .replace(/[óö]/g, 'o')
+    .replace(/[úü]/g, 'u')
+    .replace(/[ñ]/g, 'n');
+
+  // Remove blank spaces
+  const withoutSpaces = replacedString.replace(/\s/g, '_');
+
+  // Convert to lowercase
+  const lowercaseString = withoutSpaces.toLowerCase();
+
+  // Delete special characters using regular expression
+  const elLink = lowercaseString.replace(/[^a-z0-9]/g, '');
+
+  return elLink
 }
 
 export const methods = {
