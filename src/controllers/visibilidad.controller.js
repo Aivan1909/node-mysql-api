@@ -1,4 +1,5 @@
 import { getConnection } from '../database/database';
+import { desencryptar } from '../middleware/crypto.mld';
 
 
 const addvisibilidades = async (req, res) => {
@@ -18,6 +19,7 @@ const addvisibilidades = async (req, res) => {
       const visibilidad = req.body;
       visibilidad.fecha_inicio = require('moment')().format('YYYY-MM-DD HH:mm:ss');
       visibilidad.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+      visibilidad.usuarioCreacion = desencryptar(visibilidad.usuarioCreacion);
       visibilidad.estado = 2; // Estado Pendiente
 
       const connection = await getConnection();
@@ -26,7 +28,7 @@ const addvisibilidades = async (req, res) => {
       const { insertId } = await result;
 
       //insertando a la tabla Plataforma
-      for (let plataf of bkPlataforma) {
+      for await (let plataf of bkPlataforma) {
         for (const publi of bkPublicidad) {
           const idExternaPlataforma = {
             visibilidad_id: insertId,
@@ -41,59 +43,83 @@ const addvisibilidades = async (req, res) => {
 
       res.json({ body: result });
     } else {
-      res.status(428).json({ message: "Solicitud pendiente" });
+      res.status(409).json({ mensaje: "e428" });
     }
   } catch (error) {
-    console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
-
 const getvisibilidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_visibilidad where estado = '1'`);
-    // const foundvisibilidadsWithImages = [...result].map((item) => {
-    // return { ...item, file: getOneFile(item.imagen) };});
+    let result = await connection.query(`
+      SELECT tmv.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      , tme.emprendimiento
+      FROM tmunay_emprendimientos tme, tmunay_visibilidad tmv
+      LEFT JOIN users usc ON tmv.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmv.usuarioModificacion=usm.id
+      WHERE tme.id=tmv.emprendimiento_id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    for (const item of result) {
+      item.plataformas = await connection.query(`SELECT distinct tmp.id, tmp.nombre
+      FROM plataforma_visibilidad pv, tmunay_plataforma tmp
+      WHERE pv.plataforma_id=tmp.id and pv.visibilidad_id=?`, item.id);
+
+      item.publicidades = await connection.query(`SELECT distinct tmp.id, tmp.nombre
+      FROM plataforma_visibilidad pv, tmunay_publicidad tmp
+      WHERE pv.publicidad_id=tmp.id and pv.visibilidad_id=?`, item.id);
+    }
+
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
-
 const getvisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
+
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_visibilidad WHERE id=? and estado = '1'`, id);
-    if (!result.length > 0) return res.status(404);
-    //const image = getOneFile(result[0].imagen);
-    res.json({ body: { ...result[0] } });
+    let result = await connection.query(`
+      SELECT tmv.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      , tme.emprendimiento
+      FROM tmunay_emprendimientos tme, tmunay_visibilidad tmv
+      LEFT JOIN users usc ON tmv.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmv.usuarioModificacion=usm.id
+      WHERE tme.id=tmv.emprendimiento_id AND tmv.id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
+
+    result[0].plataformas = await connection.query(`SELECT distinct tmp.id, tmp.nombre
+      FROM plataforma_visibilidad pv, tmunay_plataforma tmp
+      WHERE pv.plataforma_id=tmp.id and pv.visibilidad_id=?`, result[0].id);
+
+    result[0].publicidades = await connection.query(`SELECT distinct tmp.id, tmp.nombre
+      FROM plataforma_visibilidad pv, tmunay_publicidad tmp
+      WHERE pv.publicidad_id=tmp.id and pv.visibilidad_id=?`, result[0].id);
+
+    res.json({ body: result[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
-
 const updatevisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nroPublicacion } = req.body;
-    if (nroPublicacion === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const visibilidads = { nroPublicacion, usuarioModificacion };
-    visibilidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+
+    const nuevaData = req.body
+    nuevaData.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+
     const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_visibilidad SET ? WHERE id=?`, [visibilidads, id]);
-    const foundvisibilidads = await connection.query(`SELECT * FROM tmunay_visibilidad WHERE id=?`, id);
-    res.json({ body: foundvisibilidads[0] });
+    const result = await connection.query(`UPDATE tmunay_visibilidad SET ? WHERE id=?`, [nuevaData, id]);
+
+    res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
-
 const deletevisibilidad = async (req, res) => {
   try {
     const { id } = req.params;
@@ -101,8 +127,7 @@ const deletevisibilidad = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_visibilidad WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -123,5 +148,5 @@ export const methods = {
   getvisibilidades,
   getvisibilidad,
   updatevisibilidad,
-  deletevisibilidad,
+  deletevisibilidad
 };

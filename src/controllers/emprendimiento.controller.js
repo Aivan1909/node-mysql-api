@@ -45,188 +45,97 @@ const addEmprendimiento = async (req, res) => {
 
       insertId,
     ]);
-    //Insercion de tablas relacionadas ODS 
 
     //Generando  el  codigo Emprendimeinto
     let cod = insertId.toString();
     let codigo = 'D-'.concat(cod.padStart(7, 0))
     await connection.query(`UPDATE tmunay_emprendimientos  SET codigo = ? WHERE id =?`, [codigo, insertId]);
 
-    //Insertando  el id Relacional ODS
-    /* await bkOds.forEach(element => {
-      const idExternaOds = {
-        emprendimiento_id: insertId,
-        ods_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaOds)
-      connection.query(`INSERT INTO ${_TABLA1} SET ?`, idExternaOds);
-    }); */
     //Insertando  el id Relacional Sectores
     for (let element of bkSectores) {
       const idExternaSector = {
         emprendimiento_id: insertId,
         sectores_id: element
       };
-      //console.log("IDS->externos ->" , idExternaSector)
       connection.query(`INSERT INTO emprendimientos_sector SET ?`, idExternaSector);
     };
 
-    //Insertando  el id Relacional Criterios 
-    /* await bkCriterios.forEach(element => {
-      const idExternaCriterios = {
-        emprendimiento_id: insertId,
-        criterios_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaCriterios)
-      connection.query(`INSERT INTO ${_TABLA3} SET ?`, idExternaCriterios);
-    }); */
-
-    //Insertando  el id Relacional Areas
-    /* await bkAreas.forEach(element => {
-      const idExternaAreas = {
-        emprendimiento_id: insertId,
-        area_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaAreas)
-      connection.query(`INSERT INTO ${_TABLA4} SET ?`, idExternaAreas);
-    }); */
     //Insertando  el id Relacional Medios [Referencia]
     for (let element of bkMedios) {
       const idExternaMedios = {
         emprendimiento_id: insertId,
         medio_id: element
       };
-      //console.log("IDS->externos ->" , idExternaMedios)
       connection.query(`INSERT INTO emprendimientos_medios SET ?`, idExternaMedios);
     };
-    //Insertando  el id Relacional Suscripcion 
-    /* await bkSuscripcion.forEach(element => {
-      const idExternaSuscripcion = {
-        emprendimiento_id: insertId,
-        suscripcion_id: element
-      };
-      //console.log("IDS->externos ->" , idExternaSuscripcion)
-      connection.query(`INSERT INTO ${_TABLA6} SET ?`, idExternaSuscripcion);
-    }); */
-    //Insertando  el id Relacional Visibilidad
-    /* await bkVisibilidad.forEach(element => {
-      const idExternaVisibilidad = {
-        emprendimiento_id: insertId,
-        visibilidad_id: element
-      };
-      console.log("IDS->externos ->", idExternaVisibilidad)
-      connection.query(`INSERT INTO ${_TABLA7} SET ?`, idExternaVisibilidad);
-    }); */
-
 
     res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getEmprendimientos = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`
-    SELECT em.*, de.descripcion departamentoDescripcion, fi.descripcion figuraDescripcion, fa.descripcion faseDescripcion
+    let result = await connection.query(`
+    SELECT em.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    , de.descripcion departamentoDescripcion, fi.descripcion figuraDescripcion, fa.descripcion faseDescripcion
     FROM tmunay_departamentos de
     , tmunay_emprendimientos em
     LEFT JOIN tmunay_figuras fi ON em.figuras_id=fi.id
     LEFT JOIN tmunay_fases fa ON em.fases_id=fa.id
-    WHERE em.departamento_id=de.id;`);
+    LEFT JOIN users usc ON em.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON em.usuarioModificacion=usm.id
+    WHERE em.departamento_id=de.id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
     const foundEmprendimientosWithImages = [...result].map((item) => {
       return { ...item, imgLogo: getOneFile(item.logo), imgPortada: getOneFile(item.portada) };
     });
 
     for await (const emprendimiento of foundEmprendimientosWithImages) {
-      // Obtener Suscripciones
-      emprendimiento.suscripciones = await connection.query(`
-        SELECT xpl.*, xsu.fechaInicio, xsu.fechaFin 
-        FROM tmunay_suscripcion xsu, tmunay_planes xpl
-        WHERE xsu.plan_id=xpl.id AND xsu.emprendimiento_id=?`, emprendimiento.id)
-
-      // Obtener ODS's
-      const bkOds = await connection.query(`
-        SELECT xeo.*, xod.descripcion, xod.imagen, xod.imagenEN 
-        FROM emprendimientos_ods xeo, tmunay_ods xod
-        WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
-
-      emprendimiento.ods = [...bkOds].map((item) => {
-        return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
-      })
-
-      // Obtener Sectores
-      emprendimiento.sectores = await connection.query(`
-        SELECT xse.* 
-        FROM emprendimientos_sector xes, tmunay_sectores xse
-        WHERE xes.sectores_id=xse.id AND xes.emprendimiento_id=?`, emprendimiento.id)
-
-      // Obtener Donaciones
-      emprendimiento.donaciones = await connection.query(`
-        SELECT xdo.* 
-        FROM donacion_emprendimiento xde, tmunay_donacion xdo
-        WHERE xde.donacion_id=xdo.id AND xde.emprendimiento_id=?`, emprendimiento.id)
-
-      // Obtener Comentarios
-      emprendimiento.comentarios = await connection.query(`
-        SELECT xco.*, xus.nombre, xus.apellidos
-        FROM tmunay_comentarios xco, users xus
-        WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
-
-      // Obtener Medios
-      emprendimiento.medios = await connection.query(`
-      SELECT tm.id, tm.redSocial medio
-      FROM emprendimientos_medios em, tmunay_medios tm 
-      WHERE tm.id=em.medio_id AND em.emprendimiento_id=?`, emprendimiento.id)
-
-      // Obtener Campañas
-      const bkCampanas = await connection.query(`
-      SELECT xca.*
-      FROM tmunay_campanas xca
-      WHERE xca.emprendimiento_id=?`, emprendimiento.id)
-
-      emprendimiento.campanas = [...bkCampanas].map((item) => {
-        return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
-      })
-
-      // Obtener Criterios de enfoque
-      const bkCriterios = await connection.query(`
-      SELECT xcr.*
-      FROM tmunay_criterios xcr, criterios_emprendimientos cem
-      WHERE cem.criterios_id=xcr.id AND cem.emprendimiento_id=?`, emprendimiento.id)
-
-      emprendimiento.criterios = [...bkCriterios].map((item) => {
-        return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
-      })
-
-      // Extraer porcentajes en cantidad de mujeres
-      emprendimiento.porcFundadoras = await Math.round((Number(emprendimiento.mujeresFundadoras) / Number(emprendimiento.fundadores)) * 100, -1)
-      emprendimiento.porcTomaDesicion = await Math.round((Number(emprendimiento.mujeresTomaDesicion) / Number(emprendimiento.tomaDesicion)) * 100, -1)
-      emprendimiento.porcEmpleadas = await Math.round((Number(emprendimiento.mujeresEmpleadas) / Number(emprendimiento.empleados)) * 100, -1)
+      await obtenerComplementos(connection, emprendimiento)
     }
 
     res.json({ body: foundEmprendimientosWithImages });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getEmprendimiento = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
+
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_emprendimientos WHERE id=?`, id);
-    if (!result.length > 0) return res.status(404);
-    const image = getOneFile(result[0].imagen);
-    res.json({ body: { ...result[0], file: image } });
+    let result = await connection.query(`
+    SELECT em.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    , de.descripcion departamentoDescripcion, fi.descripcion figuraDescripcion, fa.descripcion faseDescripcion
+    FROM tmunay_departamentos de
+    , tmunay_emprendimientos em
+    LEFT JOIN tmunay_figuras fi ON em.figuras_id=fi.id
+    LEFT JOIN tmunay_fases fa ON em.fases_id=fa.id
+    LEFT JOIN users usc ON em.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON em.usuarioModificacion=usm.id
+    WHERE em.departamento_id=de.id and em.id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    const foundEmprendimientosWithImages = [...result].map((item) => {
+      return { ...item, imgLogo: getOneFile(item.logo), imgPortada: getOneFile(item.portada) };
+    });
+    let emprendimiento = foundEmprendimientosWithImages[0]
+
+    await obtenerComplementos(connection, emprendimiento)
+
+    emprendimiento.id = await encryptar(emprendimiento.id)
+
+    res.json({ body: emprendimiento });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    console.log(error)
+    res.status(500).json(error.message);
   }
 };
 
@@ -242,70 +151,14 @@ const getEmprendimientoNombre = async (req, res) => {
 
     const emprendimiento = bkEmprendimiento[0]
 
-    // Obtener Suscripciones
-    emprendimiento.suscripciones = await connection.query(`
-    SELECT xpl.*, xsu.fechaInicio, xsu.fechaFin 
-    FROM tmunay_suscripcion xsu, tmunay_planes xpl
-    WHERE xsu.plan_id=xpl.id AND xsu.emprendimiento_id=?`, emprendimiento.id)
+    await obtenerComplementos(connection, emprendimiento)
 
-    // Obtener ODS's
-    const bkOds = await connection.query(`
-    SELECT xeo.*, xod.descripcion, xod.imagen, xod.imagenEN 
-    FROM emprendimientos_ods xeo, tmunay_ods xod
-    WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
-
-    emprendimiento.ods = [...bkOds].map((item) => {
-      return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
-    })
-
-    // Obtener Sectores
-    emprendimiento.sectores = await connection.query(`
-    SELECT xse.* 
-    FROM emprendimientos_sector xes, tmunay_sectores xse
-    WHERE xes.sectores_id=xse.id AND xes.emprendimiento_id=?`, emprendimiento.id)
-
-    // Obtener Donaciones
-    emprendimiento.donaciones = await connection.query(`
-    SELECT xdo.* 
-    FROM donacion_emprendimiento xde, tmunay_donacion xdo
-    WHERE xde.donacion_id=xdo.id AND xde.emprendimiento_id=?`, emprendimiento.id)
-
-    // Obtener Comentarios
-    emprendimiento.comentarios = await connection.query(`
-    SELECT xco.*, xus.nombre, xus.apellidos
-    FROM tmunay_comentarios xco, users xus
-    WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
-
-    // Obtener Campañas
-    const bkCampanas = await connection.query(`
-    SELECT xca.*
-    FROM tmunay_campanas xca
-    WHERE xca.emprendimiento_id=?`, emprendimiento.id)
-
-    emprendimiento.campanas = [...bkCampanas].map((item) => {
-      return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
-    })
-
-    // Obtener Criterios de enfoque
-    const bkCriterios = await connection.query(`
-    SELECT xcr.*
-    FROM tmunay_criterios xcr, criterios_emprendimientos cem
-    WHERE cem.criterios_id=xcr.id AND cem.emprendimiento_id=?`, emprendimiento.id)
-
-    emprendimiento.criterios = [...bkCriterios].map((item) => {
-      return { ...item, imgImagen: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
-    })
-
-    // Extraer porcentajes en cantidad de mujeres
-    emprendimiento.porcFundadoras = await obtenerPorcentaje(emprendimiento.mujeresFundadoras, emprendimiento.fundadores)
-    emprendimiento.porcTomaDesicion = await obtenerPorcentaje(emprendimiento.mujeresTomaDesicion, emprendimiento.tomaDesicion)
-    emprendimiento.porcEmpleadas = await obtenerPorcentaje(emprendimiento.mujeresEmpleadas, emprendimiento.empleados)
+    emprendimiento.id = await encryptar(emprendimiento.id)
 
     res.json({ body: emprendimiento });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -320,15 +173,19 @@ const getEmprendimientoUser = async (req, res) => {
       LEFT JOIN (SELECT su.*, pl.nombre nombre_plan 
         FROM tmunay_suscripcion su, tmunay_planes pl
         WHERE su.plan_id = pl.id) sp ON sp.emprendimiento_id = e.id
-      WHERE e.user_id=?`
+      WHERE e.estado=1 and e.user_id=?`
       , id_user);
-    if (!result.length > 0) return res.status(404);
-    result[0].logo = getOneFile(result[0].logo);
-    res.json({ body: result[0] });
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
+
+    const emprendimiento = result[0]
+    emprendimiento.logo = getOneFile(emprendimiento.logo);
+
+    emprendimiento.id = await encryptar(emprendimiento.id)
+
+    res.json({ body: emprendimiento });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -336,9 +193,11 @@ const updateEmprendimiento = async (req, res) => {
   try {
     const { id } = req.params;
     const { emprendimiento } = req.body;
+
     if (emprendimiento === undefined) return res.status(400).json({ message: 'Bad Request' });
     const Emprendimiento = req.body;
     Emprendimiento.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_emprendimientos SET ? WHERE id=?`, [Emprendimiento, id]);
     const foundEmprendimiento = await connection.query(`SELECT * FROM tmunay_emprendimientos WHERE id=?`, id);
@@ -349,8 +208,8 @@ const updateEmprendimiento = async (req, res) => {
     }
     res.json({ body: foundEmprendimiento[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    console.log(error)
+    res.status(500).json(error.message);
   }
 };
 
@@ -365,8 +224,7 @@ const deleteEmprendimiento = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_emprendimientos WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -500,12 +358,11 @@ const validarCriterios = async (req, res) => {
     res.json({ body: emprendimiento });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
-/* Funciones */
+/* Funciones locales */
 function obtenerPorcentaje(campo1, campo2) {
   return Math.round((Number(campo1) / Number(campo2)) * 100, -1)
 }
@@ -529,6 +386,72 @@ function crearLink(nombre) {
   const elLink = lowercaseString.replace(/[^a-z0-9]/g, '');
 
   return elLink
+}
+async function obtenerComplementos(connection, emprendimiento) {
+  // Obtener Suscripciones
+  emprendimiento.suscripciones = await connection.query(`
+  SELECT xpl.*, xsu.fechaInicio, xsu.fechaFin 
+  FROM tmunay_suscripcion xsu, tmunay_planes xpl
+  WHERE xsu.plan_id=xpl.id AND xsu.emprendimiento_id=?`, emprendimiento.id)
+
+  // Obtener ODS's
+  const bkOds = await connection.query(`
+  SELECT xeo.*, xod.descripcion, xod.imagen, xod.imagenEN 
+  FROM emprendimientos_ods xeo, tmunay_ods xod
+  WHERE xeo.ods_id=xod.id AND xeo.emprendimiento_id=?`, emprendimiento.id)
+
+  emprendimiento.ods = [...bkOds].map((item) => {
+    return { ...item, imgImagenES: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
+  })
+
+  // Obtener Sectores
+  emprendimiento.sectores = await connection.query(`
+  SELECT xse.* 
+  FROM emprendimientos_sector xes, tmunay_sectores xse
+  WHERE xes.sectores_id=xse.id AND xes.emprendimiento_id=?`, emprendimiento.id)
+
+  // Obtener Donaciones
+  emprendimiento.donaciones = await connection.query(`
+  SELECT xdo.* 
+  FROM donacion_emprendimiento xde, tmunay_donacion xdo
+  WHERE xde.donacion_id=xdo.id AND xde.emprendimiento_id=?`, emprendimiento.id)
+
+  // Obtener Comentarios
+  emprendimiento.comentarios = await connection.query(`
+  SELECT xco.*, xus.nombre, xus.apellidos
+  FROM tmunay_comentarios xco, users xus
+  WHERE xco.user_id=xus.id AND xco.emprendimientos_id=?`, emprendimiento.id)
+
+  // Obtener Medios
+  emprendimiento.medios = await connection.query(`
+  SELECT tm.id, tm.redSocial medio
+  FROM emprendimientos_medios em, tmunay_medios tm 
+  WHERE tm.id=em.medio_id AND em.emprendimiento_id=?`, emprendimiento.id)
+
+  // Obtener Campañas
+  const bkCampanas = await connection.query(`
+  SELECT xca.*
+  FROM tmunay_campanas xca
+  WHERE xca.emprendimiento_id=?`, emprendimiento.id)
+
+  emprendimiento.campanas = [...bkCampanas].map((item) => {
+    return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
+  })
+
+  // Obtener Criterios de enfoque
+  const bkCriterios = await connection.query(`
+  SELECT xcr.*
+  FROM tmunay_criterios xcr, criterios_emprendimientos cem
+  WHERE cem.criterios_id=xcr.id AND cem.emprendimiento_id=?`, emprendimiento.id)
+
+  emprendimiento.criterios = [...bkCriterios].map((item) => {
+    return { ...item, imgImagenES: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
+  })
+
+  // Extraer porcentajes en cantidad de mujeres
+  emprendimiento.porcFundadoras = await Math.round((Number(emprendimiento.mujeresFundadoras) / Number(emprendimiento.fundadores)) * 100, -1)
+  emprendimiento.porcTomaDesicion = await Math.round((Number(emprendimiento.mujeresTomaDesicion) / Number(emprendimiento.tomaDesicion)) * 100, -1)
+  emprendimiento.porcEmpleadas = await Math.round((Number(emprendimiento.mujeresEmpleadas) / Number(emprendimiento.empleados)) * 100, -1)
 }
 
 export const methods = {

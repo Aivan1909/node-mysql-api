@@ -30,8 +30,7 @@ const addEquipo = async (req, res) => {
     res.json({ body: result })
   } catch (error) {
     console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -44,8 +43,7 @@ const getEquipos = async (req, res) => {
     });
     res.json({ body: foundEquiposWithImages })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -57,12 +55,11 @@ const getEquipo = async (req, res) => {
     FROM tmunay_equipo e, users u 
     WHERE u.id = e.user_id and e.id=?`, id)
     console.log(result)
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -93,8 +90,7 @@ const updateEquipo = async (req, res) => {
     res.json({ body: foundEquipo[0], msg: "Registro actualizado correctamente" })
   } catch (error) {
     console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -105,8 +101,7 @@ const deleteEquipo = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_equipo WHERE id=?`, id)
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -125,8 +120,7 @@ const getUsuarios = async (req, res) => {
 
     res.json({ body: foundEquiposWithImages })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 

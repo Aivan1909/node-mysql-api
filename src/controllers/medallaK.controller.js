@@ -16,8 +16,7 @@ const addMedallaks = async (req, res) => {
     //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -29,8 +28,7 @@ const getMedallaks = async (req, res) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -39,12 +37,11 @@ const getMedallak = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -72,8 +69,7 @@ const deleteMedallak = async (req, res) => {
     const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

@@ -12,8 +12,7 @@ const addColaboradores = async (req, res) => {
     await connection.query(`UPDATE tmunay_colaboradores SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result, msg: "Registro guardado correctamente" });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -26,8 +25,7 @@ const getColaboradores = async (req, res) => {
     });
     res.json({ body: foundColaboradorWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -36,12 +34,11 @@ const getColaborador = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM tmunay_colaboradores WHERE id=? and estado = '1'`, id);
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -66,8 +63,7 @@ const updateColaborador = async (req, res) => {
     }
     res.json({ body: foundColaborador[0], msg: "Registro actualizado correctamente" });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -82,8 +78,7 @@ const deleteColaborador = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_colaboradores WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 

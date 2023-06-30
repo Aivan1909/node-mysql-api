@@ -1,8 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleleFolder, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL  = process.env.PUBLIC_URL
-
 const _TABLA = "tmunay_criterios"
 
 const addCriterios = async (req, res) => {
@@ -24,10 +22,9 @@ const addCriterios = async (req, res) => {
       result.insertId,
     ]);
     res.json({ body: result });
-} catch (error) {
-    res.status(500);
-    res.json(error.message);
-}
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
 }
 
 const getCriteriosWithoutImages = async (req, res) => {
@@ -36,13 +33,12 @@ const getCriteriosWithoutImages = async (req, res) => {
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getCriterios = async (req, res) => {
-try {
+  try {
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA}`);
     const foundCriterioWithImages = [...result].map((item) => {
@@ -50,8 +46,7 @@ try {
     });
     res.json({ body: foundCriterioWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -61,13 +56,12 @@ const getCriterio = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-    if (result.length === 0) return res.status(404).json({ message: 'No existe ningun resultado' });
+    if (result.length === 0) return res.status(404).json({ mensaje: "e404" });
     const imagen = getOneFile(result[0].imagen);
     const imagenEn = getOneFile(result[0].imagenEN);
     res.json({ body: { ...result[0], fileImagen: imagen, fileImagenEN: imagenEn } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -95,10 +89,9 @@ const updateCriterio = async (req, res) => {
       console.log(responseUpdateImagenEN)
 
     }
-    res.json({ body: foundCriterio[0] }); 
+    res.json({ body: foundCriterio[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -115,8 +108,7 @@ const deleteCriterio = async (req, res) => {
     res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 

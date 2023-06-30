@@ -1,5 +1,4 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
 
 const addPublicaciones = async (req, res) => {
@@ -11,20 +10,24 @@ const addPublicaciones = async (req, res) => {
     const result = await connection.query(`INSERT INTO tmunay_publicacion SET ?`, publicacion);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getPublicaciones = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_publicacion where estado = 1`);
+    let result = await connection.query(`
+      SELECT tmpu.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_publicacion tmpu
+      LEFT JOIN users usc ON tmpu.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmpu.usuarioModificacion=usm.id`);
+
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -32,11 +35,17 @@ const getPublicacion = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_publicacion WHERE id=? and estado = 1`, id);
+    let result = await connection.query(`
+      SELECT tmpu.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_publicacion tmpu
+      LEFT JOIN users usc ON tmpu.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmpu.usuarioModificacion=usm.id
+      WHERE id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
     res.json({ body: result[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -56,8 +65,7 @@ const updatePublicacion = async (req, res) => {
     const foundpublicaion = await connection.query(`SELECT * FROM tmunay_publicacion WHERE id=?`, id);
     res.json({ body: foundpublicaion[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -68,8 +76,7 @@ const deletePublicacion = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_publicacion WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

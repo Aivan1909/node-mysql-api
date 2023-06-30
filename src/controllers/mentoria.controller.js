@@ -34,22 +34,26 @@ const addMentorias = async (req, res) => {
     res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getMentorias = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`
-    SELECT me.*, em.emprendimiento, es.nombre 'especialidad', us.nombre 'nombresMentor', us.apellidos 'apellidosMentor'
-    FROM tmunay_mentorias me, tmunay_emprendimientos em, tmunay_especialidad es, tmunay_mentores myme, users us
+    let result = await connection.query(`
+    SELECT me.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    , em.emprendimiento, es.nombre 'especialidad', us.nombre 'nombresMentor', us.apellidos 'apellidosMentor'
+    FROM tmunay_emprendimientos em, tmunay_especialidad es, tmunay_mentores myme, users us, tmunay_mentorias me
+    LEFT JOIN users usc ON me.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON me.usuarioModificacion=usm.id
     WHERE me.emprendimiento_id=em.id AND me.especialidad_id=es.id AND me.mentor_id=myme.id and myme.user_id=us.id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    console.log(error)
+    res.status(500).json(error.message);
   }
 };
 
@@ -57,13 +61,18 @@ const getMentoria = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_mentorias WHERE id=?`, id);
-    if (!result.length > 0) return res.status(404);
-    //const image = getOneFile(result[0].imagen);
+    let result = await connection.query(`SELECT tmme.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_mentorias tmme
+      LEFT JOIN users usc ON tmme.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmme.usuarioModificacion=usm.id
+      WHERE tmme.id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
+    
     res.json({ body: { ...result[0] } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -72,12 +81,11 @@ const getMentoriasUsuario = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM tmunay_mentores WHERE user_id = ?`, id);
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
 
     res.json({ body: { ...result[0] } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -93,8 +101,7 @@ const getMentoriasEmprendedor = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -199,8 +206,7 @@ const getMentoriasGrupo = async (req, res) => {
 
     await res.json({ body: resultF });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -216,8 +222,7 @@ const updateMentoria = async (req, res) => {
     const foundmentoria = await connection.query(`SELECT * FROM tmunay_mentorias WHERE id=?`, id);
     res.json({ body: foundmentoria[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -228,8 +233,7 @@ const deleteMentoria = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_mentorias WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -299,8 +303,7 @@ const solicitudMentorias = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

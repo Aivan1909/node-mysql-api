@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { methods as visibilidadController } from './../controllers/visibilidad.controller';
 const authenticate = require('./../middleware/authenticate');
-import multer from 'multer';
 
 const router = Router();
 

@@ -19,6 +19,8 @@ const addRegistro = async (req, res) => {
       dataAdd.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
       dataAdd.usuarioCreacion = dataAdd.usuarioCreacion ? dataAdd.usuarioCreacion : "";
 
+      asignarNick(dataAdd.nombre, dataAdd.apellidos)
+
       const connection = await getConnection();
       let result = await connection.query(
         `INSERT INTO users SET ?`,
@@ -47,7 +49,7 @@ const addRegistro = async (req, res) => {
     const { code } = error;
 
     if (code == "ER_DUP_ENTRY")
-      res.status(422).json({ message: `El correo ya existe.` });
+      res.status(409).json({ message: `e422` });
     else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
@@ -253,6 +255,33 @@ const cambiarEstado = async (req, res) => {
   }
 }
 
+const getRegistroNick = async (req, res) => {
+  try {
+    const { nick } = req.params;
+
+    const connection = await getConnection();
+    const result = await connection.query(
+      `SELECT id, nombre, apellidos, email, sexo, fechaNacimiento, pais, avatar, codigoTel, telefono
+      FROM users 
+      WHERE estado=1 AND nick=?`,
+      nick
+    );
+
+    const idd = result[0].id
+    const emprendimientos = await connection.query(`SELECT id, emprendimiento, codigo 
+    FROM tmunay_emprendimientos 
+    WHERE estado=1 AND user_id=?`, idd)
+    result[0].emprendimientos = emprendimientos;
+    result[0].id = encryptar(result[0].id)
+
+    res.json({ body: result[0] });
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+
+
+/* Metodos Google */
 const loginGoogle = async (req, res) => {
   try {
     const { email } = req.body;
@@ -346,6 +375,53 @@ const addRegistroGoogle = async (req) => {
   }
 };
 
+/* Funciones */
+function crearNick(nombre) {
+  // Replace Spanish characters with normal letters
+  const replacedString = nombre
+    .replace(/[áä]/g, 'a')
+    .replace(/[éë]/g, 'e')
+    .replace(/[íï]/g, 'i')
+    .replace(/[óö]/g, 'o')
+    .replace(/[úü]/g, 'u')
+    .replace(/[ñ]/g, 'n');
+
+  // Remove blank spaces
+  const withoutSpaces = replacedString.replace(/\s/g, '_');
+
+  // Convert to lowercase
+  const lowercaseString = withoutSpaces.toLowerCase();
+
+  // Delete special characters using regular expression
+  const elLink = lowercaseString.replace(/[^a-z0-9]/g, '');
+
+  return elLink
+}
+async function asignarNick(nombre, apellidos) {
+  let nickExists = false;
+  let newNick = await crearNick(nombre);
+  let counter = 0
+
+  do {
+    const connection = await getConnection();
+    let result = await connection.query(
+      `select 1 from users where nick=?`,
+      newNick
+    );
+
+    if (result) {
+      nickExists = true;
+      counter += counter
+      newNick += newNick + counter.toString()
+    } else {
+      nickExists = false;
+    }
+
+  } while (!nickExists);
+
+  return await newNick;
+}
+
 export const methods = {
   addRegistro,
   getRegistros,
@@ -356,6 +432,8 @@ export const methods = {
   loginAdmin,
   actualizaRoles,
   cambiarEstado,
+  getRegistroNick,
+  /* Google */
   loginGoogle,
   loginAdminGoogle
 };

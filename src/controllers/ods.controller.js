@@ -1,9 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleleFolder, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_ods';
 const addOdss = async (req, res) => {
   try {
     const Ods = req.body;
@@ -11,45 +8,48 @@ const addOdss = async (req, res) => {
     Ods.estado = 1;
     const connection = await getConnection();
     const objImages = {};
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, Ods);
+    const result = await connection.query(`INSERT INTO tmunay_ods SET ?`, Ods);
     if (req.files) {
       [...req.files].forEach((item) => {
         objImages[item.fieldname] = SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: item });
       });
     }
-    await connection.query(`UPDATE ${_TABLA} SET imagen=?, imagenEN=? WHERE id=?`, [
+    await connection.query(`UPDATE tmunay_ods SET imagen=?, imagenEN=? WHERE id=?`, [
       objImages['imagen'] || null,
       objImages['imagenEN'] || null,
       result.insertId,
     ]);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getOdssWithoutImages = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM tmunay_ods`);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 const getOdss = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    let result = await connection.query(`
+    SELECT tmod.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre 
+    FROM tmunay_ods tmod
+    LEFT JOIN users usc ON tmod.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON tmod.usuarioModificacion=usm.id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
     const foundOdsWithImages = [...result].map((item) => {
       return { ...item, fileImagen: getOneFile(item.imagen), fileImagenEN: getOneFile(item.imagenEN) };
     });
     res.json({ body: foundOdsWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -58,14 +58,21 @@ const getOds = async (req, res) => {
     console.log(req.params);
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-    if (result.length === 0) return res.status(404).json({ message: 'No existe ningun resultado' });
+    let result = await connection.query(`
+    SELECT tmod.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre 
+    FROM tmunay_ods tmod
+    LEFT JOIN users usc ON tmod.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON tmod.usuarioModificacion=usm.id
+    WHERE tmod.id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    if (result.length === 0) return res.status(404).json({ mensaje: "e404" });
     const imagen = getOneFile(result[0].imagen);
     const imagenEn = getOneFile(result[0].imagenEN);
     res.json({ body: { ...result[0], fileImagen: imagen, fileImagenEN: imagenEn } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    console.log(error)
+    res.status(500).json(error.message);
   }
 };
 
@@ -77,8 +84,8 @@ const updateOds = async (req, res) => {
 
     const Ods = { nombre, usuarioModificacion };
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [Ods, id]);
-    const foundOds = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    await connection.query(`UPDATE tmunay_ods SET ? WHERE id=?`, [Ods, id]);
+    const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
     if (req.files) {
       const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
       const imagenEn = [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
@@ -86,15 +93,14 @@ const updateOds = async (req, res) => {
       const responseUpdateImagenEn =
         imagenEn && updateOneFile({ pathFile: foundOds[0].imagenEn, file: imagenEn });
       if (responseUpdateImagen)
-        await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+        await connection.query(`UPDATE tmunay_ods SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
 
       if (responseUpdateImagenEn)
-        await connection.query(`UPDATE ${_TABLA} SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
+        await connection.query(`UPDATE tmunay_ods SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
     }
     res.json({ body: foundOds[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -103,16 +109,15 @@ const deleteOds = async (req, res) => {
     console.log(req.params);
     const { id } = req.params;
     const connection = await getConnection();
-    const foundOds = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
     if (foundOds.length > 0) {
       deleleFolder(foundOds[0].imagen || foundOds[0].imagenEN);
     }
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_ods WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

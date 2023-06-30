@@ -16,24 +16,28 @@ const addEspecialidades = async (req, res) => {
     await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getEspecialidades = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT e.*, a.nombre as area 
-    FROM tmunay_especialidad e, tmunay_areas a 
-    where a.id=e.areas_id and e.estado  = 1`);
+    let result = await connection.query(`
+      SELECT e.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      , a.nombre as area 
+      FROM tmunay_areas a, tmunay_especialidad e
+      LEFT JOIN users usc ON e.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON e.usuarioModificacion=usm.id
+      where a.id=e.areas_id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
     const foundespecialidadsWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.imagen) };
     });
     res.json({ body: foundespecialidadsWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -41,13 +45,19 @@ const getEspecialidad = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_especialidad WHERE id=? and estado = '1'`, id);
-    if (!result.length > 0) return res.status(404);
+    let result = await connection.query(`
+      SELECT e.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_especialidad e
+      LEFT JOIN users usc ON e.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON e.usuarioModificacion=usm.id
+      WHERE id=?`, id);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -68,8 +78,7 @@ const updateEspecialidad = async (req, res) => {
     }
     res.json({ body: foundEspecialidad[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -80,8 +89,7 @@ const deleteEspecialidad = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_especialidad WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -116,8 +124,7 @@ const getEspecialidadesArea = async (req, res) => {
     res.json({ body: foundespecialidadsWithImages });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 

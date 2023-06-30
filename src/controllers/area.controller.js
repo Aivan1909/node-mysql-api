@@ -12,28 +12,36 @@ const addAreas = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getAreas = async (req, res) => {
   try {
     const connection = await getConnection();
-    const reAreas = await connection.query(`SELECT * FROM tmunay_areas where estado = 1`);
+    let result = await connection.query(`
+      SELECT tmar.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_areas tmar
+      LEFT JOIN users usc ON tmar.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmar.usuarioModificacion=usm.id`);
+    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
-    for (const area of reAreas) {
-      const reEspecialidades = await connection.query(`SELECT * 
-        FROM tmunay_especialidad WHERE estado=1 and areas_id = ?`, area.id)
+    for (const area of result) {
+      let reEspecialidades = await connection.query(`
+        SELECT tmes.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+        FROM tmunay_especialidad tmes
+        LEFT JOIN users usc ON tmes.usuarioCreacion=usc.id
+        LEFT JOIN users usm ON tmes.usuarioModificacion=usm.id
+        WHERE areas_id = ?`, area.id)
+      reEspecialidades = [...reEspecialidades].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
       area.especialidades = reEspecialidades
     }
 
-    res.json({ body: reAreas });
+    res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -41,19 +49,29 @@ const getArea = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const reAreas = await connection.query(`SELECT * FROM tmunay_areas WHERE id=? and estado = 1`, id);
+    let reAreas = await connection.query(`
+      SELECT tmar.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_areas tmar
+      LEFT JOIN users usc ON tmar.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmar.usuarioModificacion=usm.id
+      WHERE id=?`, id);
+    reAreas = [...reAreas].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     const result = reAreas[0]
-    const reEspecialidades = await connection.query(`SELECT * 
-        FROM tmunay_especialidad WHERE estado=1 and areas_id = ?`, result.id)
+    let reEspecialidades = await connection.query(`
+      SELECT tmes.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_especialidad tmes
+      LEFT JOIN users usc ON tmes.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmes.usuarioModificacion=usm.id
+      WHERE estado=1 and areas_id = ?`, result.id)
+    reEspecialidades = [...reEspecialidades].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     result.especialidades = reEspecialidades
 
     //const image = getOneFile(result[0].imagen);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -69,8 +87,7 @@ const updateArea = async (req, res) => {
     const foundareas = await connection.query(`SELECT * FROM tmunay_areas WHERE id=?`, id);
     res.json({ body: foundareas[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -78,26 +95,26 @@ const deleteArea = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM tmunay_areas WHERE id=?`, id);
+    let result = await connection.query(`DELETE FROM tmunay_areas WHERE id=?`, id);
+
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
 const getAreasMuestreo = async (req, res) => {
   try {
     const connection = await getConnection();
-    const reAreas = await connection.query(`SELECT DISTINCT ar.* 
-    FROM tmunay_areas ar, tmunay_especialidad esp, dicta_mentoria dm
-    WHERE ar.estado = 1 and esp.estado = 1 and esp.areas_id=ar.id and dm.especialidad_id=esp.id`);
+    let result = await connection.query(`
+      SELECT DISTINCT ar.* 
+      FROM tmunay_areas ar, tmunay_especialidad esp, dicta_mentoria dm
+      WHERE ar.estado = 1 and esp.estado = 1 and esp.areas_id=ar.id and dm.especialidad_id=esp.id`);
 
-    res.json({ body: reAreas });
+    res.json({ body: result });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

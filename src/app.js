@@ -14,6 +14,7 @@ import alianzaRoutes from './routes/alianza.routes'
 import usuarioRoutes from './routes/usuario.routes'
 import trayectoriaRoutes from './routes/trayectoria.routes'
 import colaboradorRoutes from './routes/colaborador.routes'
+import comentarioRoutes from './routes/comentario.routes'
 import testimonioRoutes from './routes/testimonio.routes'
 import muestreoRoutes from './routes/muestreo.routes'
 import odsRoutes from './routes/ods.routes'
@@ -41,7 +42,6 @@ import equipoRoutes from './routes/equipo.routes'
 import emprendimientoRoutes from './routes/emprendimiento.routes'
 import publicacionRoutes from './routes/publicacion.routes'
 import institucionRoutes from './routes/institucion.routes'
-import { Http2ServerRequest } from 'http2'
 
 
 
@@ -102,6 +102,7 @@ app.use("/api/asesores", asesorRoutes)
 app.use("/api/areas", areaRoutes)
 app.use("/api/badges", badgeRoutes)
 app.use("/api/colaboradores", colaboradorRoutes)
+app.use("/api/comentarios", comentarioRoutes)
 app.use("/api/criterios", criterioRoutes)
 app.use("/api/departamento", dptoRoutes)
 app.use("/api/dashboard", dashboardRoutes)
@@ -126,7 +127,7 @@ app.use("/api/sector", sectorRoutes)
 app.use("/api/suscripciones", suscripcionRoutes)
 app.use("/api/testimonios", testimonioRoutes)
 app.use("/api/trayectoria", trayectoriaRoutes)
-app.use("/api/visibilidad", visibilidadRoutes)
+app.use("/api/visibilidades", visibilidadRoutes)
 app.use("/api/usuarios", usuarioRoutes)
 
 

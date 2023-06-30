@@ -15,8 +15,7 @@ const addfiguras = async (req, res) => {
     //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -26,8 +25,7 @@ const getfiguras = async (req, res) => {
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE estado = '1'`);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -36,11 +34,10 @@ const getfigura = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado ='1'`, id);
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     res.json({ body: { ...result[0] } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -75,8 +72,7 @@ const deletefigura = async (req, res) => {
     const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

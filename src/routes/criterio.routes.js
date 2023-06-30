@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import { methods as criterioController } from './../controllers/criterio.controller';
 import multer from 'multer'
-const authenticate = require('./../middleware/authenticate')
-const { uploadImg } = require('./../middleware/upload');
 
 const router = Router()
 

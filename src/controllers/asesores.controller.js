@@ -12,8 +12,7 @@ const addAsesor = async (req, res) => {
     await connection.query(`UPDATE tmunay_asesor SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result, msg: "Registro actualizado correctamente" });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -26,8 +25,7 @@ const getAsesores = async (req, res) => {
     });
     res.json({ body: foundAsesoresWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -36,12 +34,11 @@ const getAsesor = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`SELECT * FROM tmunay_asesor WHERE id=? and estado = '1'`, id);
-    if (!result.length > 0) return res.status(404);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0], file: image } });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -66,8 +63,7 @@ const updateAsesor = async (req, res) => {
     }
     res.json({ body: foundAsesor[0], msg: "Registro actualizado correctamente" });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -82,8 +78,7 @@ const deleteAsesor = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_asesor WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

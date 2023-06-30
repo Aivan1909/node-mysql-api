@@ -110,8 +110,7 @@ const getDashboard = async (req, res) => {
     res.json({ body: { cantidades, registros: wkRegistros, suscripciones: wkSuscripciones, departamentos: wkDepartamentos } });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 

@@ -10,6 +10,7 @@ router.post('/loginAdmin', usuarioController.loginAdmin)
 router.post('/loginAdminGoogle', usuarioController.loginAdminGoogle)
 router.post('/loginGoogle', usuarioController.loginGoogle)
 router.get('/', usuarioController.getRegistros)
+router.get('/obtenerXNick/:nick', usuarioController.getRegistroNick)
 router.post('/actualizarRoles', usuarioController.actualizaRoles)
 router.put('/cambiarEstado/:id_user', usuarioController.cambiarEstado)
 /*router.delete('/:id', usuarioController.deleteAlianza) */

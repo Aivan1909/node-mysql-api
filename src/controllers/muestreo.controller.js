@@ -56,8 +56,7 @@ const getInicio = async (req, res) => {
     res.json({ body: result })
   } catch (error) {
     console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -107,8 +106,7 @@ const getSobreMunay = async (req, res) => {
     res.json({ body: result })
   } catch (error) {
     console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 // Muestreo Emprendimientos - Pag Web
@@ -118,8 +116,7 @@ const getMuestreoEmprendimiento = async (req, res) => {
     const result = await obtenerEmprendimientos()
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -150,8 +147,7 @@ const getNuestrosMentores = async (req, res) => {
     await res.json({ body: reAreas });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -167,8 +163,7 @@ const getMuestreoUser = async (req, res) => {
     const result = usuario
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -182,8 +177,7 @@ const getMuestreoMentores = async (req, res) => {
     const result = mentores
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -197,8 +191,7 @@ const getMuestreoKumpita = async (req, res) => {
     const result = kumpita
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -212,8 +205,7 @@ const getMuestreoTestimonio = async (req, res) => {
     const result = testimonio
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -229,8 +221,7 @@ const getMuestreoOds = async (req, res) => {
     const result = ods
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -245,8 +236,7 @@ const getMuestreoArea = async (req, res) => {
     const result = Area
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 // Especialidades de la mentoria 
@@ -259,8 +249,7 @@ const getMuestreoEspecializacion = async (req, res) => {
     const result = Especialidades
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -274,8 +263,7 @@ const getMuestreoSector = async (req, res) => {
     const result = sector
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -289,8 +277,7 @@ const getMuestreoFases = async (req, res) => {
     const result = fases
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -304,8 +291,7 @@ const getMuestreoFiguraLegal = async (req, res) => {
     const result = figura
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 //Muestreo Criterio Enfoque - Admin 13
@@ -318,8 +304,7 @@ const getMuestreoCriterios = async (req, res) => {
     const result = Criterio
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -333,8 +318,7 @@ const getMuestreoEquipo = async (req, res) => {
     const result = equipo
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -348,8 +332,7 @@ const getMuestreoAsesor = async (req, res) => {
     const result = asesor
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -363,8 +346,7 @@ const getMuestreoTrayectoria = async (req, res) => {
     const result = trayectoria
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -378,8 +360,7 @@ const getMuestreoColaboradores = async (req, res) => {
     const result = colaborador
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -393,8 +374,7 @@ const getMuestreoAlianzas = async (req, res) => {
     const result = alianza
     res.json({ body: result })
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
 }
 
@@ -415,8 +395,7 @@ const getModalEmprendimientos = async (req, res) => {
     //console.log("enlace",enlace1[0].link);  
     res.json({ body: foundEmprendimientosWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -471,8 +450,7 @@ const getDetalleEmprendimiento = async (req, res) => {
     const resultF = { 'emprendimiento': foundEmprendimientosWithImages, 'criterio': foundCriterioWithImages, 'ods': foundOdsWithImages, 'comentario': comentario };
     res.json({ body: resultF });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -496,8 +474,7 @@ const getConoceMentores = async (req, res) => {
 
     res.json({ body: foundMentoresWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -515,8 +492,7 @@ const getMentoriaFinazas = async (req, res) => {
     });
     res.json({ body: foundFinanzasWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -535,8 +511,7 @@ const getMentoriaImpacto = async (req, res) => {
 
     res.json({ body: foundImpactoWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -555,8 +530,7 @@ const getMentoriaLegal = async (req, res) => {
 
     res.json({ body: foundLegalWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -575,8 +549,7 @@ const getMentoriaMarketing = async (req, res) => {
 
     res.json({ body: foundMarketingWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -595,8 +568,7 @@ const getMentoriaGestion = async (req, res) => {
 
     res.json({ body: foundGestionWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -615,8 +587,7 @@ const getMentoriaPostulaciones = async (req, res) => {
 
     res.json({ body: foundPostulacionesWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -635,8 +606,7 @@ const getMentoriaSistemas = async (req, res) => {
 
     res.json({ body: foundSistemasWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -655,8 +625,7 @@ const getMentoriaEmpoderamiento = async (req, res) => {
 
     res.json({ body: foundEmpoderamientoWithImages });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 

@@ -18,6 +18,9 @@ const addMentores = async (req, res) => {
     const result = await connection.query(`INSERT INTO tmunay_mentores SET ?`, mentor);
 
     const { insertId } = await result;
+    const path = SaveOneFile({ mainFolder: 'mentor', idFolder: insertId, file: req.file });
+    await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [path, insertId]);
+
 
     // Insertando las especialidades
     const { areas } = req.body
@@ -35,23 +38,34 @@ const addMentores = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
+const getMentor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(`
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
+    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    WHERE me.user_id=us.id and ins.id=me.institucion_id AND me.id=?`, id);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
 
+    res.json({ body: result[0], imagen: getOneFile(result[0].imagen) });
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
 const getMentores = async (req, res) => {
   try {
     const connection = await getConnection();
     const reMentores = await connection.query(`
-    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.avatar, us.pais, us.codigoTel, us.telefono, 
-    me.id, me.user_id, me.online, me.institucion_id, ins.nombre nombreInstitucion,
-    me.fechaCreacion, me.estado
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
     FROM tmunay_mentores me, users us, tmunay_instituciones ins
     WHERE me.user_id=us.id and ins.id=me.institucion_id`);
 
     const reMentoresImage = [...reMentores].map((item) => {
-      return { ...item, file: getOneFile(item.avatar) };
+      return { ...item, imagen: getOneFile(item.imagen) };
     });
 
     for (const mentor of reMentoresImage) {
@@ -71,8 +85,7 @@ const getMentores = async (req, res) => {
     res.json({ body: reMentoresImage });
   } catch (error) {
     console.log(error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -145,8 +158,7 @@ const getMentoresMuestreos = async (req, res) => {
 
     await res.json({ body: resultF });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -225,22 +237,36 @@ const getMentoresArea = async (req, res) => {
     await res.json({ body: resultF });
   } catch (error) {
     console.log('Este es el error', error)
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 }
 
-const getMentor = async (req, res) => {
+const getMentorId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.body;
+    const idd = desencryptar(id)
+
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
-    if (!result.length > 0) return res.status(404);
-    //const image = getOneFile(result[0].imagen);
-    res.json({ body: { ...result[0] } });
+    const result = await connection.query(`
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
+    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    WHERE me.user_id=us.id and ins.id=me.institucion_id AND me.user_id=?`, idd);
+
+    const mentor = result[0]
+    mentor.imagen = getOneFile(mentor?.imagen)
+    mentor.areas = await connection.query(`
+      SELECT tmes.*
+      FROM dicta_mentoria xdm, tmunay_especialidad tmes
+      WHERE xdm.especialidad_id=tmes.id AND xdm.mentor_id=?`, mentor.id)
+    mentor.horarios = await connection.query(`
+      SELECT xhm.*
+      FROM horario_mentor xhm, tmunay_dias tmdi
+      WHERE xhm.dia_id=tmdi.id AND xhm.mentores_id=?`, mentor.id)
+
+    res.json({ body: mentor });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    console.log(error)
+    res.status(500).json(error.message);
   }
 };
 
@@ -293,8 +319,7 @@ const getMentoresMuestreo = async (req, res) => {
 
     await res.json({ body: resultF });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -310,8 +335,7 @@ const updateMentor = async (req, res) => {
     const foundmentors = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
     res.json({ body: foundmentors[0] });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -322,8 +346,7 @@ const deleteMentor = async (req, res) => {
     const result = await connection.query(`DELETE FROM tmunay_mentores WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
-    res.status(500);
-    res.json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -334,6 +357,8 @@ export const methods = {
   getMentoresMuestreos,
   getMentoresArea,
   getMentor,
+  getMentorId,
+
   getMentoresMuestreo,
   updateMentor,
   deleteMentor,
