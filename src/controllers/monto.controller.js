@@ -1,7 +1,4 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
-
-const PUBLIC_URL = process.env.PUBLIC_URL;
 
 const _TABLA = 'tmunay_monto';
 

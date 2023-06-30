@@ -33,7 +33,7 @@ const addEmprendimiento = async (req, res) => {
 
     if (req.files) {
       [...req.files].forEach((item) => {
-        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'emprendimientos', idFolder: insertId, file: item });
+        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'emprendimientos', idFolder: insertId, file: item, targetSize: 950 });
       });
     }
     await connection.query(`UPDATE tmunay_emprendimientos SET logo=?, fotoFundadores=?, fotoEquipo=?, documento=?, portada=? WHERE id=?`, [
@@ -202,7 +202,7 @@ const updateEmprendimiento = async (req, res) => {
     await connection.query(`UPDATE tmunay_emprendimientos SET ? WHERE id=?`, [Emprendimiento, id]);
     const foundEmprendimiento = await connection.query(`SELECT * FROM tmunay_emprendimientos WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImage = updateOneFile({ pathFile: foundEmprendimiento[0].imagen, file: req.file });
+      const responseUpdateImage = updateOneFile({ pathFile: foundEmprendimiento[0].imagen, file: req.file, targetSize: 950 });
       if (responseUpdateImage)
         await connection.query(`UPDATE tmunay_emprendimientos SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }

@@ -1,9 +1,4 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
-
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_plataforma';
 
 const addPlataformas = async (req, res) => {
   try {
@@ -11,8 +6,8 @@ const addPlataformas = async (req, res) => {
     plataforma.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     plataforma.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, plataforma);
-    
+    const result = await connection.query(`INSERT INTO tmunay_plataforma SET ?`, plataforma);
+
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -22,8 +17,8 @@ const addPlataformas = async (req, res) => {
 const getPlataformas = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado  = '1'`);
-    
+    const result = await connection.query(`SELECT * FROM tmunay_plataforma where estado  = '1'`);
+
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -34,7 +29,7 @@ const getPlataforma = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_plataforma WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
@@ -51,8 +46,8 @@ const updatePlataforma = async (req, res) => {
     const plataformas = { nombre, usuarioModificacion };
     plataformas.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [plataformas, id]);
-    const foundplataformas = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    await connection.query(`UPDATE tmunay_plataforma SET ? WHERE id=?`, [plataformas, id]);
+    const foundplataformas = await connection.query(`SELECT * FROM tmunay_plataforma WHERE id=?`, id);
     res.json({ body: foundplataformas[0] });
   } catch (error) {
     console.log(error)
@@ -64,7 +59,7 @@ const deletePlataforma = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_plataforma WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

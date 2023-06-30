@@ -12,7 +12,7 @@ const addEspecialidades = async (req, res) => {
     especialidad.areas_id = bkArea;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_especialidad SET ?`, especialidad);
-    const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -72,7 +72,7 @@ const updateEspecialidad = async (req, res) => {
     await connection.query(`UPDATE tmunay_especialidad SET ? WHERE id=?`, [especialidads, id]);
     const foundEspecialidad = await connection.query(`SELECT * FROM tmunay_especialidad WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImage = updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file });
+      const responseUpdateImage = updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file, targetSize: 500 });
       if (responseUpdateImage)
         await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }

@@ -14,7 +14,7 @@ const addEquipo = async (req, res) => {
     console.log(equipo)
     const connection = await getConnection()
     const result = await connection.query(`INSERT INTO tmunay_equipo SET ?`, equipo)
-    const path = SaveOneFile({ mainFolder: 'equipo', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'equipo', idFolder: result.insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [path, result.insertId]);
 
     //Actualizamos el rol personal de Equipo
@@ -78,11 +78,11 @@ const updateEquipo = async (req, res) => {
     await connection.query(`UPDATE tmunay_equipo SET ? WHERE id=?`, [equipo, id])
     const foundEquipo = await connection.query(`SELECT * FROM tmunay_equipo WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundEquipo[0].imagen, file: imagen });
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundEquipo[0].imagen, file: imagen, targetSize: 400 });
       if (responseUpdateImagen)
         await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundEquipo[0].id, file: req.file });
+        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundEquipo[0].id, file: req.file, targetSize: 400 });
         await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [path, foundEquipo[0].id]);
       }
     }

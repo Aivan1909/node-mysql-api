@@ -1,17 +1,14 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_departamentos';
 const adddptos = async (req, res) => {
   try {
     const dpto = req.body;
     //dpto.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, dpto);
+    const result = await connection.query(`INSERT INTO tmunay_departamentos SET ?`, dpto);
     //const path = SaveOneFile({ mainFolder: 'dpto', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    //await connection.query(`UPDATE tmunay_departamentos SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -21,7 +18,7 @@ const adddptos = async (req, res) => {
 const getdptos = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT * FROM tmunay_departamentos`);
 
     res.json({ body: result });
   } catch (error) {
@@ -34,7 +31,7 @@ const getdpto = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_departamentos WHERE id=?`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
@@ -51,8 +48,8 @@ const updatedpto = async (req, res) => {
         const dpto = { codigo,descripcion };
         //dpto.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [dpto, id]);
-        const founddpto = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        await connection.query(`UPDATE tmunay_departamentos SET ? WHERE id=?`, [dpto, id]);
+        const founddpto = await connection.query(`SELECT * FROM tmunay_departamentos WHERE id=?`, id);
         //if (req.file) {
         //    updateOneFile({ pathFile: founddpto[0].imagen, file: req.file });
         //}
@@ -67,11 +64,11 @@ const deletedpto = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    //const founddpto = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    //const founddpto = await connection.query(`SELECT * FROM tmunay_departamentos WHERE id=?`, id);
     //if (founddpto.length > 0) {
     //  deleteOneFile(founddpto[0].imagen);
     //}
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_departamentos WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

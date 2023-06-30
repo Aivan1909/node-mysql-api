@@ -18,7 +18,7 @@ const addMentores = async (req, res) => {
     const result = await connection.query(`INSERT INTO tmunay_mentores SET ?`, mentor);
 
     const { insertId } = await result;
-    const path = SaveOneFile({ mainFolder: 'mentor', idFolder: insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'mentor', idFolder: insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [path, insertId]);
 
 
@@ -330,9 +330,20 @@ const updateMentor = async (req, res) => {
     if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
     const mentors = { curriculum, user_id: desencryptar(user_id), tipo, usuarioModificacion };
     mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_mentores SET ? WHERE id=?`, [mentors, id]);
+
     const foundmentors = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
+
+    if (req.files) {
+      const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
+      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundmentors[0].imagen, file: imagen, targetSize: 400 });
+
+      if (responseUpdateImagen)
+        await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+    }
+
     res.json({ body: foundmentors[0] });
   } catch (error) {
     res.status(500).json(error.message);

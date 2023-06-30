@@ -1,18 +1,15 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
 
-const _TABLA = 'tmunay_figuras';
 const addfiguras = async (req, res) => {
   try {
     const figura = req.body;
     figura.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     figura.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, figura);
+    const result = await connection.query(`INSERT INTO tmunay_figuras SET ?`, figura);
     //const path = SaveOneFile({ mainFolder: 'figura', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    //await connection.query(`UPDATE tmunay_figuras SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -22,7 +19,7 @@ const addfiguras = async (req, res) => {
 const getfiguras = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE estado = '1'`);
+    const result = await connection.query(`SELECT * FROM tmunay_figuras WHERE estado = '1'`);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -33,7 +30,7 @@ const getfigura = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado ='1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_figuras WHERE id=? and estado ='1'`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     res.json({ body: { ...result[0] } });
   } catch (error) {
@@ -49,8 +46,8 @@ const updatefigura = async (req, res) => {
         const figura = { descripcion };
         figura.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [figura, id]);
-        const foundfigura = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        await connection.query(`UPDATE tmunay_figuras SET ? WHERE id=?`, [figura, id]);
+        const foundfigura = await connection.query(`SELECT * FROM tmunay_figuras WHERE id=?`, id);
         //if (req.file) {
         //    updateOneFile({ pathFile: foundfigura[0].imagen, file: req.file });
         //}
@@ -65,11 +62,11 @@ const deletefigura = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    //const foundfigura = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    //const foundfigura = await connection.query(`SELECT * FROM tmunay_figuras WHERE id=?`, id);
     //if (foundfigura.length > 0) {
     //  deleteOneFile(foundfigura[0].imagen);
     //}
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_figuras WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

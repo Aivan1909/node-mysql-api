@@ -1,8 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
 const _TABLA = 'tmunay_badges';
 const addBadges = async (req, res) => {
   try {
@@ -11,7 +9,7 @@ const addBadges = async (req, res) => {
     badges.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, badges);
-    const path = SaveOneFile({ mainFolder: 'badges', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'badges', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -46,23 +44,23 @@ const getBadge = async (req, res) => {
 };
 
 const updateBadge = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nivel, tipo, usuarioModificacion } = req.body;
-        if (nivel === undefined) return res.status(400).json({ message: 'Bad Request' });
-        const badge = { nivel, tipo, usuarioModificacion };
-        badge.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-        const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [badge, id]);
-        const foundBadge = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
-        if (req.file) {
-            updateOneFile({ pathFile: foundBadge[0].imagen, file: req.file });
-        }
-        res.json({ body: foundBadge[0] });
-    } catch (error) {
-        res.status(500);
-        res.json(error.message);
+  try {
+    const { id } = req.params;
+    const { nivel, tipo, usuarioModificacion } = req.body;
+    if (nivel === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const badge = { nivel, tipo, usuarioModificacion };
+    badge.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [badge, id]);
+    const foundBadge = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    if (req.file) {
+      updateOneFile({ pathFile: foundBadge[0].imagen, file: req.file, targetSize: 500 });
     }
+    res.json({ body: foundBadge[0] });
+  } catch (error) {
+    res.status(500);
+    res.json(error.message);
+  }
 };
 
 const deleteBadge = async (req, res) => {

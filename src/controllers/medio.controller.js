@@ -1,18 +1,14 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_medios';
 const addmedios = async (req, res) => {
   try {
     const medio = req.body;
     medio.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     medio.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, medio);
+    const result = await connection.query(`INSERT INTO tmunay_medios SET ?`, medio);
     //const path = SaveOneFile({ mainFolder: 'medio', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    //await connection.query(`UPDATE tmunay_medios SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -22,7 +18,7 @@ const addmedios = async (req, res) => {
 const getmedios = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT id as 'value', redSocial as 'label' FROM ${_TABLA}`);
+    const result = await connection.query(`SELECT id as 'value', redSocial as 'label' FROM tmunay_medios`);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -33,7 +29,7 @@ const getmedio = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_medios WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     res.json({ body: { ...result[0] } });
   } catch (error) {
@@ -49,8 +45,8 @@ const updatemedio = async (req, res) => {
         const medio = { redSocial, descripcion };
         medio.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [medio, id]);
-        const foundmedio = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        await connection.query(`UPDATE tmunay_medios SET ? WHERE id=?`, [medio, id]);
+        const foundmedio = await connection.query(`SELECT * FROM tmunay_medios WHERE id=?`, id);
 
         res.json({ body: foundmedio[0]});
     } catch (error) {
@@ -64,7 +60,7 @@ const deletemedio = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
 
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_medios WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

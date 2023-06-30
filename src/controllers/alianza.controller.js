@@ -8,7 +8,7 @@ const addAlianza = async (req, res) => {
     alianza.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_alianzas SET ?`, alianza);
-    const path = SaveOneFile({ mainFolder: 'alianza', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'alianza', idFolder: result.insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result, msg: "Registro guardado correctamente" });
   } catch (error) {
@@ -53,12 +53,12 @@ const updateAlianza = async (req, res) => {
     await connection.query(`UPDATE tmunay_alianzas SET ? WHERE id=?`, [alianza, id]);
     const foundAlianza = await connection.query(`SELECT * FROM tmunay_alianzas WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file });
-      
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file, targetSize: 400 });
+
       if (responseUpdateImagen)
         await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'asesor', idFolder: foundAlianza[0].id, file: req.file });
+        const path = SaveOneFile({ mainFolder: 'asesor', idFolder: foundAlianza[0].id, file: req.file, targetSize: 400 });
         await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [path, foundAlianza[0].id]);
       }
     }

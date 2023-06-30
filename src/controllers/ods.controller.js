@@ -11,7 +11,7 @@ const addOdss = async (req, res) => {
     const result = await connection.query(`INSERT INTO tmunay_ods SET ?`, Ods);
     if (req.files) {
       [...req.files].forEach((item) => {
-        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: item });
+        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: item, targetSize: 400 });
       });
     }
     await connection.query(`UPDATE tmunay_ods SET imagen=?, imagenEN=? WHERE id=?`, [
@@ -83,15 +83,18 @@ const updateOds = async (req, res) => {
     if (nombre === undefined) res.status(400).json({ message: 'Bad Request' });
 
     const Ods = { nombre, usuarioModificacion };
+    Ods.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_ods SET ? WHERE id=?`, [Ods, id]);
     const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
+
     if (req.files) {
       const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
       const imagenEn = [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
-      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundOds[0].imagen, file: imagen });
+      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundOds[0].imagen, file: imagen, targetSize: 400 });
       const responseUpdateImagenEn =
-        imagenEn && updateOneFile({ pathFile: foundOds[0].imagenEn, file: imagenEn });
+        imagenEn && await updateOneFile({ pathFile: foundOds[0].imagenEN, file: imagenEn, targetSize: 400 });
       if (responseUpdateImagen)
         await connection.query(`UPDATE tmunay_ods SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
 
@@ -100,6 +103,7 @@ const updateOds = async (req, res) => {
     }
     res.json({ body: foundOds[0] });
   } catch (error) {
+    console.log(error)
     res.status(500).json(error.message);
   }
 };

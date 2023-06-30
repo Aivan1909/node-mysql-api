@@ -13,7 +13,7 @@ const addCriterios = async (req, res) => {
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, criterio);
     if (req.files) {
       [...req.files].forEach((item) => {
-        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'criterio', idFolder: result.insertId, file: item });
+        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'criterio', idFolder: result.insertId, file: item, targetSize: 400 });
       });
     }
     await connection.query(`UPDATE ${_TABLA} SET imagen=?, imagenEN=? WHERE id=?`, [
@@ -78,9 +78,9 @@ const updateCriterio = async (req, res) => {
     if (req.files) {
       const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
       const imagenEn = [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
-      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundCriterio[0].imagen, file: imagen });
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundCriterio[0].imagen, file: imagen, targetSize: 400 });
       const responseUpdateImagenEn =
-        imagenEn && updateOneFile({ pathFile: foundCriterio[0].imagenEn, file: imagenEn });
+        imagenEn && updateOneFile({ pathFile: foundCriterio[0].imagenEn, file: imagenEn, targetSize: 400 });
       if (responseUpdateImagen)
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       console.log(responseUpdateImagen)

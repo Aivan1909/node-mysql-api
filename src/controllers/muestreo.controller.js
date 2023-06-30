@@ -1,25 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL
-
-const _TABLA9 = "tmunay_montos"
-const _TABLA12 = "tmunay_mentores";
-const _TABLA13 = "tmunay_kumpita";
-const _TABLA16 = "tmunay_sectores";
-const _TABLA17 = "tmunay_fases";
-const _TABLA18 = "tmunay_figuras";
-const _TABLA19 = "tmunay_ods";
-const _TABLA20 = "tmunay_areas";
-const _TABLA21 = "tmunay_especialidad";
-const _TABLA22 = "tmunay_criterios";
-const _TABLA23 = "emprendimiento_modal";
-const _TABLA24 = "criterios_emprendimientos";
-const _TABLA25 = "emprendimientos_ods";
-const _TABLA26 = "tmunay_comentarios";
-const _TABLA27 = "area_mentor";
-const _TABLA28 = "especialidad_mentor";
-
 // Muestreo de pagina de Index [Home, Inicio]
 const getInicio = async (req, res) => {
   try {
@@ -40,7 +21,7 @@ const getInicio = async (req, res) => {
     let sql4 = `SELECT 'horas' as id, count(*) as cantidad FROM tmunay_mentorias`
     const mentoria = await connection.query(sql4)
 
-    let sql5 = `SELECT 'monto' as id, ifnull(sum(monto), 0) as cantidad, 'USD' as medida FROM ${_TABLA9}`
+    let sql5 = `SELECT 'monto' as id, ifnull(sum(monto), 0) as cantidad, 'USD' as medida FROM tmunay_montos`
     const campana = await connection.query(sql5)
 
     const topEmpre = await obtenerEmprendimientos()
@@ -172,7 +153,7 @@ const getMuestreoMentores = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM ${_TABLA12} A, users B WHERE A.user_id = B.id`
+    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM tmunay_mentores A, users B WHERE A.user_id = B.id`
     const mentores = await connection.query(sql1)
     const result = mentores
     res.json({ body: result })
@@ -186,7 +167,7 @@ const getMuestreoKumpita = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM ${_TABLA13} A, users B WHERE A.user_id = B.id`
+    let sql1 = `SELECT A.estado, B.nombre,B.apellidos,B.fechaCreacion FROM tmunay_kumpita A, users B WHERE A.user_id = B.id`
     const kumpita = await connection.query(sql1)
     const result = kumpita
     res.json({ body: result })
@@ -216,7 +197,7 @@ const getMuestreoOds = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA19}  where estado = '1' `
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM tmunay_ods  where estado = '1' `
     const ods = await connection.query(sql1)
     const result = ods
     res.json({ body: result })
@@ -231,7 +212,7 @@ const getMuestreoArea = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA20}  where estado = '1' `
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM tmunay_areas  where estado = '1' `
     const Area = await connection.query(sql1)
     const result = Area
     res.json({ body: result })
@@ -244,7 +225,7 @@ const getMuestreoEspecializacion = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM ${_TABLA21}  where estado = '1' `
+    let sql1 = `SELECT id, nombre, estado , fechaCreacion  FROM tmunay_especialidad  where estado = '1' `
     const Especialidades = await connection.query(sql1)
     const result = Especialidades
     res.json({ body: result })
@@ -258,7 +239,7 @@ const getMuestreoSector = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA16}  where estado = '1' `
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM tmunay_sectores where estado = '1' `
     const sector = await connection.query(sql1)
     const result = sector
     res.json({ body: result })
@@ -272,7 +253,7 @@ const getMuestreoFases = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA17}  where estado = '1' `
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM tmunay_fases where estado = '1' `
     const fases = await connection.query(sql1)
     const result = fases
     res.json({ body: result })
@@ -286,7 +267,7 @@ const getMuestreoFiguraLegal = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM ${_TABLA18}   `
+    let sql1 = `SELECT id, estado, descripcion, fechaCreacion  FROM tmunay_figuras`
     const figura = await connection.query(sql1)
     const result = figura
     res.json({ body: result })
@@ -299,7 +280,7 @@ const getMuestreoCriterios = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql1 = `SELECT id, descripcion, estado , fechaCreacion  FROM ${_TABLA22}  where estado = '1' `
+    let sql1 = `SELECT id, descripcion, estado , fechaCreacion  FROM tmunay_criterios  where estado = '1' `
     const Criterio = await connection.query(sql1)
     const result = Criterio
     res.json({ body: result })
@@ -384,7 +365,7 @@ const getModalEmprendimientos = async (req, res) => {
     //const { id } = req.params;
     const enlace = "https://www.soymunay.org/emprendimientos/";
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA23} where estado = '1'`);
+    const result = await connection.query(`SELECT * FROM emprendimiento_modal where estado = '1'`);
     const foundEmprendimientosWithImages = [...result].map((item) => {
       return { ...item, file: getOneFile(item.logo) };
     });
@@ -420,8 +401,8 @@ const getDetalleEmprendimiento = async (req, res) => {
     //Criterio Enfoque - Emprendimiento  
 
     let sql2 = `SELECT A.id, A.imagen, A.imagenEN, B.emprendimiento_id
-                FROM ${_TABLA22} A
-                INNER JOIN ${_TABLA24} B ON A.id = B.criterios_id
+                FROM tmunay_criterios A
+                INNER JOIN criterios_emprendimientos B ON A.id = B.criterios_id
                 WHERE B.emprendimiento_id = ?`;
 
     let result2 = await connection.query(sql2, id);
@@ -431,8 +412,8 @@ const getDetalleEmprendimiento = async (req, res) => {
 
     //Ods - Emprendimientos 
     let sql3 = `SELECT A.id, A.imagen, A.imagenEN, B.emprendimiento_id
-                 FROM ${_TABLA19} A
-                 INNER JOIN ${_TABLA25} B ON A.id = B.ods_id
+                 FROM tmunay_ods A
+                 INNER JOIN emprendimientos_ods B ON A.id = B.ods_id
                  WHERE B.emprendimiento_id = ?`;
     let result3 = await connection.query(sql3, id);
     const foundOdsWithImages = [...result3].map((item) => {
@@ -441,7 +422,7 @@ const getDetalleEmprendimiento = async (req, res) => {
 
     //Comentario - Emprendimiento 
     let sql4 = `SELECT A.id, A.comentario, B.nombre 
-                FROM  ${_TABLA26} A 
+                FROM  tmunay_comentarios A 
                 INNER JOIN users B ON A.user_id = B.id
                 WHERE A.emprendimientos_id = ?`;
     let result4 = await connection.query(sql4, id);
@@ -461,10 +442,10 @@ const getConoceMentores = async (req, res) => {
 
 
     let sql1 = `SELECT B.id, concat(B.nombre,' ',B.apellidos) as nombre , group_concat(D.nombre) as especialidad, B.avatar
-                FROM ${_TABLA12} A
+                FROM tmunay_mentores A
                 INNER JOIN users B ON A.user_id = B.id 
-                INNER JOIN ${_TABLA28} C ON A.id = C.mentor_id 
-                INNER JOIN ${_TABLA21}  D ON D.id = C.especialidad_id
+                INNER JOIN especialidad_mentor C ON A.id = C.mentor_id 
+                INNER JOIN tmunay_especialidad  D ON D.id = C.especialidad_id
                 GROUP  BY B.id 
                 ORDER BY especialidad DESC`
     let result = await connection.query(sql1);
@@ -484,7 +465,7 @@ const getMentoriaFinazas = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '1'`
     let result = await connection.query(sql1);
     const foundFinanzasWithImages = [...result].map((item) => {
@@ -502,7 +483,7 @@ const getMentoriaImpacto = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '2'`
     let result = await connection.query(sql1);
     const foundImpactoWithImages = [...result].map((item) => {
@@ -521,7 +502,7 @@ const getMentoriaLegal = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '3'`
     let result = await connection.query(sql1);
     const foundLegalWithImages = [...result].map((item) => {
@@ -540,7 +521,7 @@ const getMentoriaMarketing = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '4'`
     let result = await connection.query(sql1);
     const foundMarketingWithImages = [...result].map((item) => {
@@ -559,7 +540,7 @@ const getMentoriaGestion = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '5'`
     let result = await connection.query(sql1);
     const foundGestionWithImages = [...result].map((item) => {
@@ -578,7 +559,7 @@ const getMentoriaPostulaciones = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '6'`
     let result = await connection.query(sql1);
     const foundPostulacionesWithImages = [...result].map((item) => {
@@ -597,7 +578,7 @@ const getMentoriaSistemas = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '7'`
     let result = await connection.query(sql1);
     const foundSistemasWithImages = [...result].map((item) => {
@@ -616,7 +597,7 @@ const getMentoriaEmpoderamiento = async (req, res) => {
     const connection = await getConnection();
 
     let sql1 = `select A.id,  A.nombre AS nombreArea, B.nombre AS nombreEspecialidad, B.imagen 
-    from  ${_TABLA20} A , ${_TABLA21} B 
+    from  tmunay_areas A , tmunay_especialidad B 
     WHERE A.id = B.areas_id AND A.id = '8'`
     let result = await connection.query(sql1);
     const foundEmpoderamientoWithImages = [...result].map((item) => {

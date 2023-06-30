@@ -1,9 +1,5 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_dias';
 
 const addHorarios = async (req, res) => {
   try {
@@ -11,7 +7,7 @@ const addHorarios = async (req, res) => {
     horario.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     horario.estado = 1;
     const connection = await getConnection();
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, horario);
+    const result = await connection.query(`INSERT INTO tmunay_dias SET ?`, horario);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);
@@ -21,7 +17,7 @@ const addHorarios = async (req, res) => {
 const getHorarios = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
+    const result = await connection.query(`SELECT * FROM tmunay_dias where estado = '1'`);
     // const foundhorariosWithImages = [...result].map((item) => {
     // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -34,7 +30,7 @@ const getHorario = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado ='1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_dias WHERE id=? and estado ='1'`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
@@ -51,8 +47,8 @@ const updateHorario = async (req, res) => {
     const horarios = { fecha, hora1, usuarioModificacion };
     horarios.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
-    await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [horarios, id]);
-    const foundhorarios = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+    await connection.query(`UPDATE tmunay_dias SET ? WHERE id=?`, [horarios, id]);
+    const foundhorarios = await connection.query(`SELECT * FROM tmunay_dias WHERE id=?`, id);
     res.json({ body: foundhorarios[0] });
   } catch (error) {
     res.status(500).json(error.message);
@@ -63,7 +59,7 @@ const deleteHorario = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_dias WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

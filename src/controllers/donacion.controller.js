@@ -1,12 +1,4 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
-
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
-const _TABLA = 'tmunay_donacion';
-const _TABLA1 = 'campana_donacion';
-const _TABLA2 = 'donacion_monto';
-const _TABLA3 = 'tmunay_donacion';
 
 
 const addDonaciones = async (req, res) => {
@@ -15,9 +7,9 @@ const addDonaciones = async (req, res) => {
     donacion.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     donacion.estado = 1;
     const connection = await getConnection();
-    let result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, donacion);
+    let result = await connection.query(`INSERT INTO tmunay_donacion SET ?`, donacion);
     //const path = SaveOneFile({ mainFolder: 'donacion', idFolder: result.insertId, file: req.file });
-    //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
+    //await connection.query(`UPDATE tmunay_donacion SET imagen=? WHERE id=?`, [path, result.insertId]);
 
   //insertando la relacion Montos
     const { insertId } = result;
@@ -27,12 +19,12 @@ const addDonaciones = async (req, res) => {
     };
 
     result = await connection.query(
-      `INSERT INTO ${_TABLA1} SET ?`,
+      `INSERT INTO campana_donacion SET ?`,
       relacionCampana
     );
     //Insertando  a la tabla relacional 
     result = await connection.query(
-      `SELECT * FROM ${_TABLA} WHERE id=?`,
+      `SELECT * FROM tmunay_donacion WHERE id=?`,
       insertId
     );
 
@@ -44,12 +36,12 @@ const addDonaciones = async (req, res) => {
      };
  
      result = await connection.query(
-       `INSERT INTO ${_TABLA2} SET ?`,
+       `INSERT INTO donacion_monto SET ?`,
        relacionMonto
      );
      //Insertando  a la tabla relacional 
      result = await connection.query(
-       `SELECT * FROM ${_TABLA} WHERE id=?`,
+       `SELECT * FROM tmunay_donacion WHERE id=?`,
        insertId1
      );
 
@@ -65,7 +57,7 @@ const addDonaciones = async (req, res) => {
 const getDonaciones = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} where estado = '1'`);
+    const result = await connection.query(`SELECT * FROM tmunay_donacion where estado = '1'`);
    // const founddonacionsWithImages = [...result].map((item) => {
    // return { ...item, file: getOneFile(item.imagen) };});
     res.json({ body: result });
@@ -78,7 +70,7 @@ const getDonacion = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1'`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_donacion WHERE id=? and estado = '1'`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });
@@ -95,8 +87,8 @@ const updateDonacion = async (req, res) => {
         const donacions = {moneda , anonimato, comentario, transferencia, qr, tarjeta , montos_id, usuarioModificacion};
         donacions.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
         const connection = await getConnection();
-        await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [donacions, id]);
-        const founddonacions = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
+        await connection.query(`UPDATE tmunay_donacion SET ? WHERE id=?`, [donacions, id]);
+        const founddonacions = await connection.query(`SELECT * FROM tmunay_donacion WHERE id=?`, id);
         res.json({ body: founddonacions[0] });
     } catch (error) {
         res.status(500);
@@ -108,7 +100,7 @@ const deleteDonacion = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id);
+    const result = await connection.query(`DELETE FROM tmunay_donacion WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     res.status(500).json(error.message);

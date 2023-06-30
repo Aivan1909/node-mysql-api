@@ -1,8 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL;
-
 const _TABLA = 'tmunay_trayectoria';
 const addTrayectoria = async (req, res) => {
   try {
@@ -11,7 +9,7 @@ const addTrayectoria = async (req, res) => {
     trayectoria.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, trayectoria);
-    const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -39,7 +37,7 @@ const getTrayectoria = async (req, res) => {
     const result = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=? and estado = '1' `, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const image = getOneFile(result[0].imagen);
-    
+
     res.json({ body: { ...result[0], file: image } });
   } catch (error) {
     res.status(500).json(error.message);
@@ -57,11 +55,11 @@ const updateTrayectoria = async (req, res) => {
     await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [trayectoria, id]);
     const foundTrayectoria = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundTrayectoria[0].imagen, file: imagen });
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundTrayectoria[0].imagen, file: imagen, targetSize: 500 });
       if (responseUpdateImagen)
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundTrayectoria[0].id, file: req.file });
+        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundTrayectoria[0].id, file: req.file, targetSize: 500 });
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, foundTrayectoria[0].id]);
       }
     }

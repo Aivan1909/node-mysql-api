@@ -1,8 +1,6 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-const PUBLIC_URL = process.env.PUBLIC_URL
-
 const _TABLA = "tmunay_testimonios"
 
 const addTestimonios = async (req, res) => {
@@ -12,7 +10,7 @@ const addTestimonios = async (req, res) => {
     testimonio.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, testimonio);
-    const path = SaveOneFile({ mainFolder: 'testimonio', idFolder: result.insertId, file: req.file });
+    const path = SaveOneFile({ mainFolder: 'testimonio', idFolder: result.insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -59,7 +57,7 @@ const updateTestimonio = async (req, res) => {
     await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [testimonioEditado, id]);
     const foundTestimonio = await connection.query(`SELECT * FROM ${_TABLA} WHERE id=?`, id);
     if (req.file) {
-      const responseUpdateImage = updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file });
+      const responseUpdateImage = updateOneFile({ pathFile: foundTestimonio[0].imagen, file: req.file, targetSize: 400 });
       if (responseUpdateImage)
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImage, id]);
     }
