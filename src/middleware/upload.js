@@ -43,7 +43,7 @@ function createFolder(path) {
 async function SaveOneFile({ mainFolder, idFolder, file, targetSize }) {
   try {
     const pathFolder = `${mainFolder}/${idFolder}`;
-    const filename = `${Math.round(Math.random() * 99999)}-${moment().unix()}.webp`;
+    const filename = `${Math.round(Math.random() * 99999)}_${moment().unix()}.webp`;
     const filePath = `uploads/${pathFolder}/${filename}`
 
     // Obtener metadatos de la imagen original
@@ -66,7 +66,7 @@ async function SaveOneFile({ mainFolder, idFolder, file, targetSize }) {
     createFolder(pathFolder);
 
     // Convert the file to .webp format
-    sharp(file.buffer)
+    await sharp(file.buffer)
       .resize(targetWidth, targetHeight)
       .webp()
       .toFile(filePath)

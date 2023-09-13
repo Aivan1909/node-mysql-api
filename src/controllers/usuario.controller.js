@@ -1,5 +1,6 @@
 import { getConnection } from "../database/database";
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
+import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
 
 const bcrypt = require("bcrypt");
@@ -151,16 +152,18 @@ const getRegistro = async (req, res) => {
 
     const connection = await getConnection();
     const result = await connection.query(
-      `SELECT id, nombre, apellidos, email, sexo, fechaNacimiento, pais, avatar, codigoTel, telefono
-      FROM users 
-      WHERE estado=1 AND id=?`,
+      `SELECT nombre, apellidos, email, sexo, fechaNacimiento, pais, avatar, codigoTel, telefono, estado, nick, tmpu.*
+      FROM users us 
+      LEFT JOIN tmunay_perfil_user tmpu ON us.id = tmpu.user_id
+      WHERE us.id = ?`,
       idd
     );
-    result[0].id = encryptar(idd);
+    result[0].idPerfil = result[0].id;
+    result[0].id = encryptar(result[0].user_id);
 
-    const emprendimientos = await connection.query(`SELECT id, emprendimiento, codigo 
+    const emprendimientos = await connection.query(`SELECT id, emprendimiento, codigo, estado 
     FROM tmunay_emprendimientos 
-    WHERE estado=1 AND user_id=?`, idd)
+    WHERE user_id=?`, idd)
     result[0].emprendimientos = emprendimientos;
 
     res.json({ body: result[0] });
@@ -261,9 +264,12 @@ const getRegistroNick = async (req, res) => {
 
     const connection = await getConnection();
     const result = await connection.query(
-      `SELECT id, nombre, apellidos, email, sexo, fechaNacimiento, pais, avatar, codigoTel, telefono
-      FROM users 
-      WHERE estado=1 AND nick=?`,
+      `SELECT u.id, u.nombre, u.apellidos, u.email, u.sexo, u.fechaNacimiento, u.pais, u.avatar, u.codigoTel, u.telefono, u.fechaCreacion, u.nick
+      , tmpu.sobreMi, IFNULL(tmpu.likes, 0) likes, tmpu.calle, tmpu.ciudad, tmpu.codigoPostal, tmpu.perfilPublico, tmpu.nombrePublico, tmpu.titulo, tmpu.emailPublico
+      FROM users u
+      LEFT JOIN tmunay_perfil_user tmpu
+      ON u.id = tmpu.user_id
+      WHERE u.nick=?`,
       nick
     );
 
@@ -274,7 +280,12 @@ const getRegistroNick = async (req, res) => {
     result[0].emprendimientos = emprendimientos;
     result[0].id = encryptar(result[0].id)
 
-    res.json({ body: result[0] });
+
+    const resultado = [...result].map((item) => {
+      return { ...item, fileAvatar: getOneFile(item.avatar) };
+    });
+
+    res.json({ body: resultado[0] });
   } catch (error) {
     res.status(500).json(error.message);
   }

@@ -69,7 +69,7 @@ const getMentoria = async (req, res) => {
     result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
-    
+
     res.json({ body: { ...result[0] } });
   } catch (error) {
     res.status(500).json(error.message);
@@ -115,8 +115,13 @@ const getMentoriasGrupo = async (req, res) => {
     let sql = `SELECT xu.id, xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, xm.curriculum, xm.estado
               FROM tmunay_mentores xm, users xu 
               where xm.user_id = xu.id and xm.estado = 1`;
-
-    const mentores = await connection.query(sql);
+    let mentores = null
+    if (typeof (mentor) != 'undefined' && mentor != '' && mentor != 'all') {
+      sql += " AND xu.nick = ?"
+      mentores = await connection.query(sql, mentor);
+    } else {
+      mentores = await connection.query(sql);
+    }
 
     let resultF = [];
     for (const iterator of mentores) {
@@ -320,7 +325,6 @@ function intervaloHoras(ini, fin) {
 
   return horas;
 }
-
 
 export const methods = {
   addMentorias,

@@ -8,6 +8,6 @@ router.post('/', authenticate, visibilidadController.addvisibilidades); //authen
 router.get('/', visibilidadController.getvisibilidades);
 router.get('/:id', visibilidadController.getvisibilidad);
 router.put('/:id', authenticate, visibilidadController.updatevisibilidad);
-router.delete('/:id', visibilidadController.deletevisibilidad);
+router.delete('/:id', authenticate, visibilidadController.deletevisibilidad);
 
 export default router;

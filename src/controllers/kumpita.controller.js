@@ -8,7 +8,7 @@ const addkumpitas = async (req, res) => {
     kumpita.user_id = desencryptar(kumpita.user_id)
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_kumpita SET ?`, kumpita);
-    //const path = SaveOneFile({ mainFolder: 'kumpitaia', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'kumpitaia', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_kumpita SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

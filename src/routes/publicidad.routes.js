@@ -6,10 +6,10 @@ import multer from 'multer';
 
 const router = Router();
 
-router.post('/', multer().single('imagen'), isImage, publicidadController.addPublicidades); //authenticate
+router.post('/', authenticate, multer().single('imagen'), isImage, publicidadController.addPublicidades); //authenticate
 router.get('/', publicidadController.getPublicidades);
 router.get('/:id', publicidadController.getPublicidad);
-router.put('/:id', multer().single('imagen'), isImage, publicidadController.updatePublicidad);
-router.delete('/:id', publicidadController.deletePublicidad);
+router.put('/:id', authenticate, multer().single('imagen'), isImage, publicidadController.updatePublicidad);
+router.delete('/:id', authenticate, publicidadController.deletePublicidad);
 
 export default router;

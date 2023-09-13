@@ -12,7 +12,7 @@ const addEspecialidades = async (req, res) => {
     especialidad.areas_id = bkArea;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_especialidad SET ?`, especialidad);
-    const path = SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file, targetSize: 500 });
+    const path = await SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -127,6 +127,24 @@ const getEspecialidadesArea = async (req, res) => {
     res.status(500).json(error.message);
   }
 }
+// Obtencion de capsulas agrupadas por especialidad
+const getEspecialidadesCapsula = async (req, res) => {
+  try {
+    const connection = await getConnection();
+    const especialidades = await connection.query('select * from tmunay_especialidad')
+
+    for (const especialidad of especialidades) {
+      especialidad.capsulas = await connection.query(`SELECT * 
+        FROM tmunay_capsulas
+        WHERE especialidad_id = ?`, especialidad.id)
+    }
+
+    res.json({ body: especialidades });
+  } catch (error) {
+    console.log("getEspecialidadesCapsula", error)
+    res.status(500).json(error.message);
+  }
+}
 
 export const methods = {
   addEspecialidades,
@@ -135,5 +153,6 @@ export const methods = {
   updateEspecialidad,
   deleteEspecialidad,
 
-  getEspecialidadesArea
+  getEspecialidadesArea,
+  getEspecialidadesCapsula
 };

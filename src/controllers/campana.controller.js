@@ -8,7 +8,7 @@ const addCampanas = async (req, res) => {
     campana.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_campanas SET ?`, campana);
-    //const path = SaveOneFile({ mainFolder: 'campanaia', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'campanaia', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_campanas SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

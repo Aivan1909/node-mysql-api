@@ -8,7 +8,7 @@ const addMontos = async (req, res) => {
     monto.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, monto);
-    //const path = SaveOneFile({ mainFolder: 'monto', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'monto', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

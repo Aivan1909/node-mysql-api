@@ -8,6 +8,6 @@ router.post('/', authenticate, institucionController.addInstituciones)
 router.get('/', institucionController.getInstituciones)
 router.get('/:id', institucionController.getInstitucion)
 router.put('/:id', authenticate, institucionController.updateInstitucion)
-router.delete('/:id', institucionController.deleteInstitucion)
+router.delete('/:id', authenticate, institucionController.deleteInstitucion)
 
 export default router;

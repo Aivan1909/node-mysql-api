@@ -2,7 +2,7 @@ import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
-
+/* Funcion que agrega los mentores  */
 const addMentores = async (req, res) => {
   try {
     //Recuperar el Usuario para completar el  formulario[revision]
@@ -18,7 +18,7 @@ const addMentores = async (req, res) => {
     const result = await connection.query(`INSERT INTO tmunay_mentores SET ?`, mentor);
 
     const { insertId } = await result;
-    const path = SaveOneFile({ mainFolder: 'mentor', idFolder: insertId, file: req.file, targetSize: 400 });
+    const path = await SaveOneFile({ mainFolder: 'mentor', idFolder: insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [path, insertId]);
 
 
@@ -46,12 +46,20 @@ const getMentor = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     const result = await connection.query(`
-    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
-    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, us.nick, me.*
+    , CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    FROM users us, tmunay_instituciones ins, tmunay_mentores me
+    LEFT JOIN users usc ON me.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON me.usuarioModificacion=usm.id
     WHERE me.user_id=us.id and ins.id=me.institucion_id AND me.id=?`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
 
-    res.json({ body: result[0], imagen: getOneFile(result[0].imagen) });
+    const mentor = result[0]
+    mentor.imagen = getOneFile(mentor.imagen)
+    mentor.id = encryptar(mentor.id)
+    mentor.user_id = encryptar(mentor.user_id)
+
+    res.json({ body: mentor });
   } catch (error) {
     res.status(500).json(error.message);
   }
@@ -60,15 +68,14 @@ const getMentores = async (req, res) => {
   try {
     const connection = await getConnection();
     const reMentores = await connection.query(`
-    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
-    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, us.nick, me.*
+    , CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    FROM users us, tmunay_instituciones ins, tmunay_mentores me
+    LEFT JOIN users usc ON me.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON me.usuarioModificacion=usm.id
     WHERE me.user_id=us.id and ins.id=me.institucion_id`);
 
-    const reMentoresImage = [...reMentores].map((item) => {
-      return { ...item, imagen: getOneFile(item.imagen) };
-    });
-
-    for (const mentor of reMentoresImage) {
+    for (const mentor of reMentores) {
       const reEspecialidades = await connection.query(`SELECT es.nombre
       FROM tmunay_mentores me, dicta_mentoria dm, tmunay_especialidad es
       WHERE me.id=dm.mentor_id AND dm.especialidad_id=es.id and me.id=?`, mentor.id)
@@ -82,6 +89,10 @@ const getMentores = async (req, res) => {
       mentor.horarios = reHorarios
     }
 
+    const reMentoresImage = [...reMentores].map((item) => {
+      return { ...item, imagen: getOneFile(item.imagen), id: encryptar(item.id), user_id: encryptar(item.user_id) };
+    });
+
     res.json({ body: reMentoresImage });
   } catch (error) {
     console.log(error)
@@ -94,7 +105,7 @@ const getMentoresMuestreos = async (req, res) => {
   try {
     const connection = await getConnection();
 
-    let sql = `SELECT xu.id, xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, xm.curriculum, xm.estado
+    let sql = `SELECT xu.id, xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, xm.curriculum, xm.estado, xu.nick
               FROM tmunay_mentores xm, users xu 
               where xm.user_id = xu.id and xm.estado = 1`;
     const mentores = await connection.query(sql);
@@ -168,7 +179,7 @@ const getMentoresArea = async (req, res) => {
     const { linkArea } = req.params;
 
     const connection = await getConnection();
-    let sql = `SELECT xu.id, xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, xm.curriculum, xm.estado
+    let sql = `SELECT xu.id, xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, xm.curriculum, xm.estado, xu.nick
               FROM tmunay_mentores xm, users xu 
               where xm.user_id = xu.id and xm.estado = 1`;
     const mentores = await connection.query(sql);
@@ -240,7 +251,6 @@ const getMentoresArea = async (req, res) => {
     res.status(500).json(error.message);
   }
 }
-
 const getMentorId = async (req, res) => {
   try {
     const { id } = req.body;
@@ -248,20 +258,47 @@ const getMentorId = async (req, res) => {
 
     const connection = await getConnection();
     const result = await connection.query(`
-    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, me.*
-    FROM tmunay_mentores me, users us, tmunay_instituciones ins
+    SELECT us.nombre, us.apellidos, us.email, us.sexo, us.pais, us.codigoTel, us.telefono, us.nick, me.*
+    , CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+    FROM users us, tmunay_instituciones ins, tmunay_mentores me
+    LEFT JOIN users usc ON me.usuarioCreacion=usc.id
+    LEFT JOIN users usm ON me.usuarioModificacion=usm.id
     WHERE me.user_id=us.id and ins.id=me.institucion_id AND me.user_id=?`, idd);
 
     const mentor = result[0]
+
     mentor.imagen = getOneFile(mentor?.imagen)
+
     mentor.areas = await connection.query(`
-      SELECT tmes.*
+      SELECT DISTINCT tmar.id, tmar.nombre, tmar.descripcionArea, tmar.link, tmar.tipo, tmar.estado
+      FROM dicta_mentoria xdm, tmunay_especialidad tmes, tmunay_areas tmar
+      WHERE tmes.areas_id=tmar.id AND xdm.especialidad_id=tmes.id AND xdm.mentor_id=?`, mentor.id)
+
+    mentor.especialidades = await connection.query(`
+      SELECT tmes.id, tmes.nombre, tmes.descripcion, tmes.link, tmes.estado
       FROM dicta_mentoria xdm, tmunay_especialidad tmes
       WHERE xdm.especialidad_id=tmes.id AND xdm.mentor_id=?`, mentor.id)
+
     mentor.horarios = await connection.query(`
-      SELECT xhm.*
+      SELECT xhm.*, tmdi.descripcion dia_descripcion
       FROM horario_mentor xhm, tmunay_dias tmdi
       WHERE xhm.dia_id=tmdi.id AND xhm.mentores_id=?`, mentor.id)
+
+    mentor.mentorias = await connection.query(`
+      SELECT tmem.emprendimiento, tmme.asistencia, tmme.hora_inicio, tmme.hora_fin, tmar.nombre nombre_area, tmar.tipo tipo_area
+      , tmme.codigo, tmme.fechaMentoria
+      FROM tmunay_emprendimientos tmem, tmunay_mentorias tmme, tmunay_especialidad tmes, dicta_mentoria xdm, tmunay_areas tmar
+      WHERE tmar.id=tmes.areas_id AND tmem.id=tmme.emprendimiento_id AND tmme.especialidad_id=tmes.id AND xdm.especialidad_id=tmes.id AND xdm.mentor_id=?`, mentor.id)
+
+    mentor.medallas = await connection.query(`
+      SELECT tmmn.*
+      FROM tmunay_medallasnanay tmmn, medallas_nanay xmn
+      WHERE tmmn.id = xmn.medallas_id AND xmn.mentores_id=?
+      ORDER BY xmn.id
+    `, mentor.id)
+
+    mentor.id = encryptar(mentor.id)
+    mentor.user_id = encryptar(mentor.user_id)
 
     res.json({ body: mentor });
   } catch (error) {
@@ -276,7 +313,7 @@ const getMentoresMuestreo = async (req, res) => {
     const connection = await getConnection();
 
     let sql = `SELECT xu.id,xm.id as mentor_id , concat(xu.nombre,' ', xu.apellidos) as nombres, 
-              xm.curriculum, xm.dia, xm.hora1, xm.hora2,xm.duracion, xm.estado, xm.tipo , xm.online
+              xm.curriculum, xm.dia, xm.hora1, xm.hora2,xm.duracion, xm.estado, xm.tipo , xm.online, xu.nick
               FROM tmunay_mentores xm, users xu 
               where xm.user_id = xu.id and xm.id = ?`;
     const mentores = await connection.query(sql, id);
@@ -330,7 +367,7 @@ const updateMentor = async (req, res) => {
     if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
     const mentors = { curriculum, user_id: desencryptar(user_id), tipo, usuarioModificacion };
     mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    
+
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_mentores SET ? WHERE id=?`, [mentors, id]);
 

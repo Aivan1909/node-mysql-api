@@ -7,7 +7,7 @@ const addmedios = async (req, res) => {
     medio.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_medios SET ?`, medio);
-    //const path = SaveOneFile({ mainFolder: 'medio', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'medio', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_medios SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

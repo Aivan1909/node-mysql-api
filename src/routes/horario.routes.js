@@ -6,10 +6,10 @@ import multer from 'multer';
 
 const router = Router()
 
-router.post('/', multer().single('imagen'), isImage, horarioController.addHorarios) //authenticate
+router.post('/', authenticate, multer().single('imagen'), isImage, horarioController.addHorarios) //authenticate
 router.get('/', horarioController.getHorarios)
 router.get('/:id', horarioController.getHorario)
-router.put('/:id', multer().single('imagen'), isImage, horarioController.updateHorario)
-router.delete('/:id', horarioController.deleteHorario)
+router.put('/:id', authenticate, multer().single('imagen'), isImage, horarioController.updateHorario)
+router.delete('/:id', authenticate, horarioController.deleteHorario)
 
 export default router;

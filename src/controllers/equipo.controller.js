@@ -14,7 +14,7 @@ const addEquipo = async (req, res) => {
     console.log(equipo)
     const connection = await getConnection()
     const result = await connection.query(`INSERT INTO tmunay_equipo SET ?`, equipo)
-    const path = SaveOneFile({ mainFolder: 'equipo', idFolder: result.insertId, file: req.file, targetSize: 400 });
+    const path = await SaveOneFile({ mainFolder: 'equipo', idFolder: result.insertId, file: req.file, targetSize: 400 });
     await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [path, result.insertId]);
 
     //Actualizamos el rol personal de Equipo
@@ -82,10 +82,11 @@ const updateEquipo = async (req, res) => {
       if (responseUpdateImagen)
         await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundEquipo[0].id, file: req.file, targetSize: 400 });
+        const path = await SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundEquipo[0].id, file: req.file, targetSize: 400 });
         await connection.query(`UPDATE tmunay_equipo SET imagen=? WHERE id=?`, [path, foundEquipo[0].id]);
       }
     }
+    
     emailSender("aivatepaz@gmail.com", "Prueba", "")
     res.json({ body: foundEquipo[0], msg: "Registro actualizado correctamente" })
   } catch (error) {

@@ -8,7 +8,7 @@ const addColaboradores = async (req, res) => {
     colaborador.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_colaboradores SET ?`, colaborador);
-    const path = SaveOneFile({ mainFolder: 'colaborador', idFolder: result.insertId, file: req.file, targetSize: 500 });
+    const path = await SaveOneFile({ mainFolder: 'colaborador', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE tmunay_colaboradores SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result, msg: "Registro guardado correctamente" });
   } catch (error) {
@@ -57,7 +57,7 @@ const updateColaborador = async (req, res) => {
       if (responseUpdateImagen)
         await connection.query(`UPDATE tmunay_colaboradores SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'asesor', idFolder: foundColaborador[0].id, file: req.file, targetSize: 500 });
+        const path = await SaveOneFile({ mainFolder: 'asesor', idFolder: foundColaborador[0].id, file: req.file, targetSize: 500 });
         await connection.query(`UPDATE tmunay_colaboradores SET imagen=? WHERE id=?`, [path, foundColaborador[0].id]);
       }
     }

@@ -82,8 +82,7 @@ const getEmprendimientos = async (req, res) => {
     let result = await connection.query(`
     SELECT em.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
     , de.descripcion departamentoDescripcion, fi.descripcion figuraDescripcion, fa.descripcion faseDescripcion
-    FROM tmunay_departamentos de
-    , tmunay_emprendimientos em
+    FROM tmunay_departamentos de, tmunay_emprendimientos em
     LEFT JOIN tmunay_figuras fi ON em.figuras_id=fi.id
     LEFT JOIN tmunay_fases fa ON em.fases_id=fa.id
     LEFT JOIN users usc ON em.usuarioCreacion=usc.id
@@ -175,13 +174,23 @@ const getEmprendimientoUser = async (req, res) => {
         WHERE su.plan_id = pl.id) sp ON sp.emprendimiento_id = e.id
       WHERE e.estado=1 and e.user_id=?`
       , id_user);
-    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
+    let emprendimiento = {}
+    if (result.length > 0) {
+      emprendimiento = result[0]
+      emprendimiento.logo = getOneFile(emprendimiento.logo);
 
-    const emprendimiento = result[0]
-    emprendimiento.logo = getOneFile(emprendimiento.logo);
+      emprendimiento.mentorias = await connection.query(`
+      SELECT me.*, ar.nombre area, ar.tipo, es.nombre especialidad
+      FROM tmunay_mentorias me
+      LEFT OUTER JOIN tmunay_especialidad es
+      ON me.especialidad_id=es.id
+      LEFT OUTER JOIN tmunay_areas ar
+      ON es.areas_id=ar.id
+      WHERE emprendimiento_id=? 
+      ORDER BY me.fechaMentoria DESC`, emprendimiento.id)
 
-    emprendimiento.id = await encryptar(emprendimiento.id)
-
+      emprendimiento.id = await encryptar(emprendimiento.id)
+    }
     res.json({ body: emprendimiento });
   } catch (error) {
     console.log(error)

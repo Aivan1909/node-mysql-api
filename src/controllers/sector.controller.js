@@ -16,7 +16,7 @@ const addsectores = async (req, res) => {
 const getsectores = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_sectores where estado = 1 `);
+    const result = await connection.query(`SELECT * FROM tmunay_sectores`);
 
     res.json({ body: result });
   } catch (error) {
@@ -28,7 +28,7 @@ const getsector = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_sectores WHERE id=? and estado = 1`, id);
+    const result = await connection.query(`SELECT * FROM tmunay_sectores WHERE id=?`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     //const image = getOneFile(result[0].imagen);
     res.json({ body: { ...result[0] } });

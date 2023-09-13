@@ -6,7 +6,7 @@ import multer from 'multer';
 
 const router = Router()
 //console.log('Estamos en rutas:')
-router.post('/', multer().single('avatar'), isImage, mentorController.addMentores) //authenticate
+router.post('/', authenticate, multer().single('avatar'), isImage, mentorController.addMentores) //authenticate
 router.post('/get', mentorController.getMentorId)
 router.get('/muestreos', mentorController.getMentoresMuestreos)
 router.get('/muestreo/:id', mentorController.getMentoresMuestreo)
@@ -14,8 +14,8 @@ router.get('/area/:linkArea', mentorController.getMentoresArea)
 router.get('/', mentorController.getMentores)
 router.get('/:id', mentorController.getMentor)
 
-router.put('/:id', multer().single('avatar'), isImage, mentorController.updateMentor)
-router.delete('/:id', mentorController.deleteMentor)
+router.put('/:id', authenticate, multer().single('avatar'), isImage, mentorController.updateMentor)
+router.delete('/:id', authenticate, mentorController.deleteMentor)
 
 
 export default router;

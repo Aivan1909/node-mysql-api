@@ -8,7 +8,7 @@ const addDonaciones = async (req, res) => {
     donacion.estado = 1;
     const connection = await getConnection();
     let result = await connection.query(`INSERT INTO tmunay_donacion SET ?`, donacion);
-    //const path = SaveOneFile({ mainFolder: 'donacion', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'donacion', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_donacion SET imagen=? WHERE id=?`, [path, result.insertId]);
 
   //insertando la relacion Montos

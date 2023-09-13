@@ -7,7 +7,7 @@ const adddptos = async (req, res) => {
     //dpto.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_departamentos SET ?`, dpto);
-    //const path = SaveOneFile({ mainFolder: 'dpto', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'dpto', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_departamentos SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

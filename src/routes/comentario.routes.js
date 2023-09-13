@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { methods as comentarioController } from './../controllers/Comentario.controller';
-import multer from 'multer'
+const authenticate = require('./../middleware/authenticate');
 
 const router = Router()
 
-router.post('/', comentarioController.addComentario)
+router.post('/', authenticate, comentarioController.addComentario)
 router.get('/', comentarioController.getComentarios)
 router.get('/:id', comentarioController.getComentario)
-router.put('/:id', comentarioController.updateComentario)
-router.delete('/:id', comentarioController.deleteComentario)
+router.put('/:id', authenticate, comentarioController.updateComentario)
+router.delete('/:id', authenticate, comentarioController.deleteComentario)
 
 export default router;
 

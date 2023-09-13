@@ -7,7 +7,7 @@ const addRoles = async (req, res) => {
     rol.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_rol SET ?`, rol);
-    //const path = SaveOneFile({ mainFolder: 'rol', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'rol', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_rol SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

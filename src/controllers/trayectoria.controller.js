@@ -9,7 +9,7 @@ const addTrayectoria = async (req, res) => {
     trayectoria.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, trayectoria);
-    const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: result.insertId, file: req.file, targetSize: 500 });
+    const path = await SaveOneFile({ mainFolder: 'trayectoria', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {
@@ -59,7 +59,7 @@ const updateTrayectoria = async (req, res) => {
       if (responseUpdateImagen)
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
       else {
-        const path = SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundTrayectoria[0].id, file: req.file, targetSize: 500 });
+        const path = await SaveOneFile({ mainFolder: 'trayectoria', idFolder: foundTrayectoria[0].id, file: req.file, targetSize: 500 });
         await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, foundTrayectoria[0].id]);
       }
     }

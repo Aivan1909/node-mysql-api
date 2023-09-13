@@ -6,7 +6,7 @@ const getInicio = async (req, res) => {
   try {
     const connection = await getConnection()
 
-    let sql2 = `SELECT concat(nombre,' ', apellidos )  as  nombre ,testimonio,imagen FROM tmunay_testimonios`
+    let sql2 = `SELECT concat(nombre,' ', apellidos) nombre, testimonio, imagen FROM tmunay_testimonios`
     const testimonio = await connection.query(sql2)
 
     //Obteniendo 
@@ -36,7 +36,6 @@ const getInicio = async (req, res) => {
 
     res.json({ body: result })
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 }
@@ -86,7 +85,6 @@ const getSobreMunay = async (req, res) => {
 
     res.json({ body: result })
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 }
@@ -95,6 +93,7 @@ const getMuestreoEmprendimiento = async (req, res) => {
   try {
 
     const result = await obtenerEmprendimientos()
+
     res.json({ body: result })
   } catch (error) {
     res.status(500).json(error.message);
@@ -117,17 +116,18 @@ const getNuestrosMentores = async (req, res) => {
       area.especialidades = reEspecialidades.map((item) => item.nombre)
 
       // Obtener mentores
-      sql2 = `SELECT u.avatar
+      sql2 = `SELECT DISTINCT me.imagen, u.nombre, u.apellidos
       FROM tmunay_especialidad e, dicta_mentoria dm, tmunay_mentores me, users u
-      WHERE dm.especialidad_id=e.id AND dm.mentor_id=me.id AND me.user_id=u.id AND e.estado=1 AND u.avatar IS NOT NULL AND e.areas_id= ?`
+      WHERE dm.especialidad_id=e.id AND dm.mentor_id=me.id AND me.user_id=u.id AND e.estado=1 AND e.areas_id= ?`
       let reMentores = await connection.query(sql2, area.id);
 
-      area.mentores = await [...reMentores].map((item) => getOneFile(item.avatar));
+      area.mentores = await [...reMentores].map((item) => {
+        return { ...item, imagen: getOneFile(item.imagen) };
+      });
     }
 
     await res.json({ body: reAreas });
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 }
@@ -615,7 +615,7 @@ const getMentoriaEmpoderamiento = async (req, res) => {
 async function obtenerEmprendimientos() {
   const connection = await getConnection()
 
-  let sql6 = `SELECT emprendimiento, link, e.descripcion, logo, portada, fotoFundadores, fotoEquipo, de.id departamentoId, de.descripcion departamentoDescripcion, emse.sectores, emse.sectoresCodigo, CASE WHEN sus.id IS NULL THEN 0 ELSE 1 END suscripcion
+  let sql6 = `SELECT e.id, emprendimiento, link, e.descripcion, logo, portada, fotoFundadores, fotoEquipo, de.id departamentoId, de.descripcion departamentoDescripcion, emse.sectores, emse.sectoresCodigo, CASE WHEN sus.id IS NULL THEN 0 ELSE 1 END suscripcion
   FROM tmunay_departamentos de, tmunay_emprendimientos e
   LEFT JOIN (SELECT es.emprendimiento_id, GROUP_CONCAT(s.descripcion SEPARATOR ', ') sectores, GROUP_CONCAT(s.id SEPARATOR ', ') sectoresCodigo
              FROM tmunay_sectores s, emprendimientos_sector es 
@@ -628,7 +628,6 @@ async function obtenerEmprendimientos() {
   ORDER BY e.fechaCreacion DESC 
   LIMIT 12`
   const topEmpre = await connection.query(sql6)
-
 
   for (const emp of topEmpre) {
     emp.imagenes = []
@@ -649,6 +648,15 @@ async function obtenerEmprendimientos() {
       const imgFotoEquipo = getOneFile(emp.fotoEquipo)
       emp.imagenes.push(imgFotoEquipo)
     }
+
+    //Ods - Emprendimientos 
+    let result3 = await connection.query(`SELECT A.id, A.imagen, A.imagenEN, B.emprendimiento_id
+      FROM tmunay_ods A
+      INNER JOIN emprendimientos_ods B ON A.id = B.ods_id
+      WHERE B.emprendimiento_id = ?`, emp.id);
+    emp.ods = [...result3].map((item) => {
+      return { ...item, fileImagen: getOneFile(item.imagen), fileImagenEN: getOneFile(item.imagenEN) };
+    });
   }
 
   return topEmpre;

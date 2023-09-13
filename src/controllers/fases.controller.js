@@ -8,7 +8,7 @@ const addFases = async (req, res) => {
     fase.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_fases SET ?`, fase);
-    //const path = SaveOneFile({ mainFolder: 'fase', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'fase', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_fases SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

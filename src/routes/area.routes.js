@@ -6,11 +6,11 @@ import multer from 'multer';
 
 const router = Router()
 
-router.post('/', multer().single('imagen'), isImage, areaController.addAreas) //authenticate
+router.post('/', authenticate, multer().single('imagen'), isImage, areaController.addAreas) //authenticate
 router.get('/', areaController.getAreas)
 router.get('/muestreo', areaController.getAreasMuestreo)
 router.get('/:id', areaController.getArea)
-router.put('/:id', multer().single('imagen'), isImage, areaController.updateArea)
-router.delete('/:id', areaController.deleteArea)
+router.put('/:id', authenticate, multer().single('imagen'), isImage, areaController.updateArea)
+router.delete('/:id', authenticate, areaController.deleteArea)
 
 export default router;

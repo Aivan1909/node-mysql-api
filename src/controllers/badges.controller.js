@@ -9,7 +9,7 @@ const addBadges = async (req, res) => {
     badges.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, badges);
-    const path = SaveOneFile({ mainFolder: 'badges', idFolder: result.insertId, file: req.file, targetSize: 500 });
+    const path = await SaveOneFile({ mainFolder: 'badges', idFolder: result.insertId, file: req.file, targetSize: 500 });
     await connection.query(`UPDATE ${_TABLA} SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

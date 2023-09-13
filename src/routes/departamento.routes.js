@@ -6,10 +6,10 @@ import multer from 'multer';
 
 const router = Router();
 
-router.post('/', multer().single('imagen'), isImage, dptoController.adddptos); //authenticate
+router.post('/', authenticate, multer().single('imagen'), isImage, dptoController.adddptos); //authenticate
 router.get('/', dptoController.getdptos);
 router.get('/:id', dptoController.getdpto);
-router.put('/:id', multer().single('imagen'), isImage, dptoController.updatedpto);
-router.delete('/:id', dptoController.deletedpto);
+router.put('/:id', authenticate, multer().single('imagen'), isImage, dptoController.updatedpto);
+router.delete('/:id', authenticate, dptoController.deletedpto);
 
 export default router;

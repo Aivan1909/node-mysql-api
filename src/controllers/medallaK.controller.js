@@ -7,7 +7,7 @@ const addMedallaks = async (req, res) => {
     medallak.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_medallaskumpita SET ?`, medallak);
-    //const path = SaveOneFile({ mainFolder: 'medallakia', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'medallakia', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_medallaskumpita SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

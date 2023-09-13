@@ -8,7 +8,7 @@ const addfiguras = async (req, res) => {
     figura.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_figuras SET ?`, figura);
-    //const path = SaveOneFile({ mainFolder: 'figura', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'figura', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_figuras SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

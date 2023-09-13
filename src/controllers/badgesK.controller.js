@@ -8,7 +8,7 @@ const addBadges = async (req, res) => {
     badge.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_badges SET ?`, badge);
-    //const path = SaveOneFile({ mainFolder: 'badgeia', idFolder: result.insertId, file: req.file });
+    //const path = await SaveOneFile({ mainFolder: 'badgeia', idFolder: result.insertId, file: req.file });
     //await connection.query(`UPDATE tmunay_badges SET imagen=? WHERE id=?`, [path, result.insertId]);
     res.json({ body: result });
   } catch (error) {

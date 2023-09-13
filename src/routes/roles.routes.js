@@ -6,10 +6,10 @@ import multer from 'multer';
 
 const router = Router()
 
-router.post('/', multer().single('imagen'), isImage,rolesController.addRoles) //authenticate
+router.post('/', authenticate, multer().single('imagen'), isImage,rolesController.addRoles) //authenticate
 router.get('/', rolesController.getRoles)
 router.get('/:id', rolesController.getRol)
-router.put('/:id', multer().single('imagen'), isImage, rolesController.updateRol)
-router.delete('/:id', rolesController.deleteRol)
+router.put('/:id', authenticate, multer().single('imagen'), isImage, rolesController.updateRol)
+router.delete('/:id', authenticate, rolesController.deleteRol)
 
 export default router;
