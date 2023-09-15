@@ -1,97 +1,92 @@
-import { getConnection } from '../database/database'
-const config = require('./../config')
+import { getConnection } from '../database/database';
+import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
-
-const PUBLIC_URL  = process.env.PUBLIC_URL
-
-const _TABLA = "tmunay_alianzas"
 const addAlianza = async (req, res) => {
   try {
-    console.log("BODY ", req.body)
-    const { nombre, enlace, imagen, usuarioCreacion } = req.body;
-    const alianza = { nombre, enlace, estado: 'activo', usuarioCreacion };
-
-    const connection = await getConnection()
-    //let sql  = `INSERT INTO ${_TABLA}(nombre,enlace,imagen,estado,usuarioCreacion,fechaCreacion, usuarioModificacion,fechaModificacion) VALUES(?,?,?,?,?,?,?,?)`
-    //const result = await connection.query(sql,[nom,enl,img,est,usr,fc,usr,fm])
-    const result = await connection.query(`INSERT INTO ${_TABLA} SET ?`, alianza)
-    console.log(result)
-    res.json({ body: result })
+    const alianza = req.body;
+    alianza.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    alianza.estado = 1;
+    const connection = await getConnection();
+    const result = await connection.query(`INSERT INTO tmunay_alianzas SET ?`, alianza);
+    const path = await SaveOneFile({ mainFolder: 'alianza', idFolder: result.insertId, file: req.file, targetSize: 400 });
+    await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [path, result.insertId]);
+    res.json({ body: result, msg: "Registro guardado correctamente" });
   } catch (error) {
-    console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
-}
+};
 
 const getAlianzas = async (req, res) => {
   try {
-    const connection = await getConnection()
-    const result = await connection.query(`SELECT id, nombre, enlace, CONCAT('${config.app.serverUrl}', imagen) as imagen, estado, usuarioCreacion, fechaCreacion, usuarioModificacion FROM ${_TABLA}`)
-    res.json({ body: result })
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM tmunay_alianzas where estado = '1'`);
+    const foundAlianzasWithImages = [...result].map((item) => {
+      return { ...item, file: getOneFile(item.imagen) };
+    });
+    res.json({ body: foundAlianzasWithImages });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
-}
+};
 
 const getAlianza = async (req, res) => {
   try {
-    console.log(req.params)
     const { id } = req.params;
-    const connection = await getConnection()
-    const result = await connection.query(`SELECT id, nombre, enlace, CONCAT('${config.app.serverUrl}', imagen) as imagen, estado, usuarioCreacion, fechaCreacion, usuarioModificacion FROM ${_TABLA} WHERE id=?`, id)
-    res.json({ body: result[0] })
+    const connection = await getConnection();
+    const result = await connection.query(`SELECT * FROM tmunay_alianzas WHERE id=? and estado = '1'`, id);
+    if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
+    const image = getOneFile(result[0].imagen);
+    res.json({ body: { ...result[0], file: image } });
   } catch (error) {
-    console.log(error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
-}
+};
 
 const updateAlianza = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, enlace, usuarioModificacion } = req.body;
-    let alianza = { nombre, enlace, usuarioModificacion }
-
+    const { nombre, enlace, imagen, usuarioModificacion } = req.body;
+    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const alianza = { nombre, enlace, usuarioModificacion };
+    alianza.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const connection = await getConnection();
+    await connection.query(`UPDATE tmunay_alianzas SET ? WHERE id=?`, [alianza, id]);
+    const foundAlianza = await connection.query(`SELECT * FROM tmunay_alianzas WHERE id=?`, id);
     if (req.file) {
-      const { destination, filename } = req.file
-      let nuevaImagen = destination.replace('src/public/', '') + "/" + filename
-      alianza.imagen = nuevaImagen
+      const responseUpdateImagen = imagen && updateOneFile({ pathFile: foundAlianza[0].imagen, file: req.file, targetSize: 400 });
+
+      if (responseUpdateImagen)
+        await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+      else {
+        const path = await SaveOneFile({ mainFolder: 'asesor', idFolder: foundAlianza[0].id, file: req.file, targetSize: 400 });
+        await connection.query(`UPDATE tmunay_alianzas SET imagen=? WHERE id=?`, [path, foundAlianza[0].id]);
+      }
     }
-
-    if (nombre === undefined)
-      res.status(400).json({ message: "Bad Request" })
-
-    console.log(alianza)
-    const connection = await getConnection()
-    const result = await connection.query(`UPDATE ${_TABLA} SET ? WHERE id=?`, [alianza, id])
-    res.json({ body: result[0] })
+    res.json({ body: foundAlianza[0], msg: "Registro actualizado correctamente" });
   } catch (error) {
-    console.log("error", error)
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
-}
+};
 
 const deleteAlianza = async (req, res) => {
   try {
-    console.log(req.params)
     const { id } = req.params;
-    const connection = await getConnection()
-    const result = await connection.query(`DELETE FROM ${_TABLA} WHERE id=?`, id)
-    res.json({ body: result })
+    const connection = await getConnection();
+    const foundAlianza = await connection.query(`SELECT * FROM tmunay_alianzas WHERE id=?`, id);
+    if (foundAlianza.length > 0) {
+      deleteOneFile(foundAlianza[0].imagen);
+    }
+    const result = await connection.query(`DELETE FROM tmunay_alianzas WHERE id=?`, id);
+    res.json({ body: result });
   } catch (error) {
-    res.status(500)
-    res.json(error.message)
+    res.status(500).json(error.message);
   }
-}
+};
 
 export const methods = {
   addAlianza,
   getAlianzas,
   getAlianza,
   updateAlianza,
-  deleteAlianza
-}
+  deleteAlianza,
+};
