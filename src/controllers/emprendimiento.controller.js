@@ -189,6 +189,16 @@ const getEmprendimientoUser = async (req, res) => {
       WHERE emprendimiento_id=? 
       ORDER BY me.fechaMentoria DESC`, emprendimiento.id)
 
+      // Obtener Campañas
+      const bkCampanas = await connection.query(`
+        SELECT xca.*
+        FROM tmunay_campanas xca
+        WHERE xca.emprendimiento_id=?`, emprendimiento.id)
+
+      emprendimiento.campanas = [...bkCampanas].map((item) => {
+        return { ...item, imgImagen1: getOneFile(item.imagen1), imgImagen2: getOneFile(item.imagen2), imgImagen3: getOneFile(item.imagen3) }
+      })
+
       emprendimiento.id = await encryptar(emprendimiento.id)
     }
     res.json({ body: emprendimiento });

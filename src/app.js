@@ -14,6 +14,7 @@ import alianzaRoutes from './routes/alianza.routes'
 import areaRoutes from './routes/area.routes'
 import asesorRoutes from './routes/asesor.routes'
 import badgeRoutes from './routes/badge.routes'
+import campaniaRoutes from './routes/campana.routes'
 import capsulaRoutes from './routes/capsula.routes'
 import colaboradorRoutes from './routes/colaborador.routes'
 import comentarioRoutes from './routes/comentario.routes'
@@ -96,6 +97,7 @@ app.use("/api/alianzas", alianzaRoutes)
 app.use("/api/asesores", asesorRoutes)
 app.use("/api/areas", areaRoutes)
 app.use("/api/badges", badgeRoutes)
+app.use("/api/campanias", campaniaRoutes)
 app.use("/api/capsulas", capsulaRoutes)
 app.use("/api/colaboradores", colaboradorRoutes)
 app.use("/api/comentarios", comentarioRoutes)
