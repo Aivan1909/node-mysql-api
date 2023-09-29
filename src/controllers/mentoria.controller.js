@@ -47,7 +47,8 @@ const getMentorias = async (req, res) => {
     FROM tmunay_emprendimientos em, tmunay_especialidad es, tmunay_mentores myme, users us, tmunay_mentorias me
     LEFT JOIN users usc ON me.usuarioCreacion=usc.id
     LEFT JOIN users usm ON me.usuarioModificacion=usm.id
-    WHERE me.emprendimiento_id=em.id AND me.especialidad_id=es.id AND me.mentor_id=myme.id and myme.user_id=us.id`);
+    WHERE me.emprendimiento_id=em.id AND me.especialidad_id=es.id AND me.mentor_id=myme.id and myme.user_id=us.id
+    ORDER BY fechaMentoria desc`);
     result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     res.json({ body: result });
