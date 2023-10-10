@@ -2,6 +2,8 @@ import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
+const moment = require("moment")
+
 
 const addRegistro = async (req, res) => {
   try {
@@ -44,7 +46,11 @@ const addRegistro = async (req, res) => {
 const getRegistros = async (req, res) => {
   try {
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_campanas where estdo = '1'`);
+    const result = await connection.query(`
+      SELECT tmca.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacion, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacion
+      FROM tmunay_campanas tmca
+      LEFT JOIN users usc ON tmca.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmca.usuarioModificacion=usm.id`);
     const resultWithImages = [...result].map((item) => {
       return { ...item, fileImagen1: getOneFile(item.imagen1), fileImagen2: getOneFile(item.imagen2), fileImagen3: getOneFile(item.imagen3) };
     });
@@ -59,7 +65,12 @@ const getRegistro = async (req, res) => {
   try {
     const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query(`SELECT * FROM tmunay_campanas WHERE id=? and estado  = '1'`, id);
+    const result = await connection.query(`
+      SELECT tmca.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacion, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_campanas tmca
+      LEFT JOIN users usc ON tmca.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmca.usuarioModificacion=usm.id
+      WHERE tmca.id=?`, id);
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
     const resultWithImages = [...result].map((item) => {
       return { ...item, fileImagen1: getOneFile(item.imagen1), fileImagen2: getOneFile(item.imagen2), fileImagen3: getOneFile(item.imagen3) };
@@ -119,10 +130,73 @@ const deleteRegistro = async (req, res) => {
   }
 };
 
+/* Funciones luego del CRUD */
+const getRegistroEmprendimiento = async (req, res) => {
+  try {
+    const { linkEmprendimiento } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(`
+      SELECT tmca.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacion, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacion
+      FROM tmunay_campanas tmca
+      LEFT JOIN tmunay_emprendimientos tmem ON tmca.emprendimiento_id=tmem.id
+      LEFT JOIN users usc ON tmca.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmca.usuarioModificacion=usm.id
+      WHERE tmem.link=?`, linkEmprendimiento);
+
+    const resultWithImages = result.map((item) => {
+      return { ...item, fileImagen1: getOneFile(item.imagen1), fileImagen2: getOneFile(item.imagen2), fileImagen3: getOneFile(item.imagen3) };
+    });
+
+    res.json({ body: resultWithImages });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+};
+const cambiarEstado = async (req, res) => {
+  try {
+    console.log(req.params, req.body)
+    const { id } = req.params
+    const { estado, duracion, usuarioModificacion } = req.body
+    const connection = await getConnection();
+
+    const newCampania = {
+      estado, usuarioModificacion, fechaModificacion: require('moment')().format('YYYY-MM-DD HH:mm:ss')
+    }
+    newCampania.usuarioModificacion = desencryptar(newCampania.usuarioModificacion);
+
+    /* Actualizamos estado */
+    const result = connection.query(
+      `UPDATE tmunay_campanas SET ? where id=?`,
+      [newCampania, id]
+    );
+
+    if (estado == 1) {
+      const fechaActual = moment()
+      const fechaInicio = fechaActual.format('YYYY-MM-DD HH:mm:ss');
+      const fechaFin = fechaActual.add(duracion, 'days').format('YYYY-MM-DD HH:mm:ss');
+      connection.query(
+        `UPDATE tmunay_campanas 
+          SET fechaInicio=?, fechaFin=? 
+          where id=?`,
+        [fechaInicio, fechaFin, id]
+      );
+    }
+
+    res.json({ body: result })
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+}
+
 export const methods = {
   addRegistro,
   getRegistros,
   getRegistro,
   updateRegistro,
   deleteRegistro,
+  getRegistroEmprendimiento,
+  cambiarEstado
 };

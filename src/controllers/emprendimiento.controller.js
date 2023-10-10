@@ -467,6 +467,12 @@ async function obtenerComplementos(connection, emprendimiento) {
     return { ...item, imgImagenES: getOneFile(item.imagen), imgImagenEN: getOneFile(item.imagenEN) }
   })
 
+  // Obtener Visibilidades
+  emprendimiento.visibilidad = await connection.query(`
+  SELECT xca.*
+  FROM tmunay_visibilidad xca
+  WHERE xca.emprendimiento_id=?`, emprendimiento.id)
+
   // Extraer porcentajes en cantidad de mujeres
   emprendimiento.porcFundadoras = await Math.round((Number(emprendimiento.mujeresFundadoras) / Number(emprendimiento.fundadores)) * 100, -1)
   emprendimiento.porcTomaDesicion = await Math.round((Number(emprendimiento.mujeresTomaDesicion) / Number(emprendimiento.tomaDesicion)) * 100, -1)
