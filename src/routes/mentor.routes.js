@@ -8,6 +8,8 @@ const router = Router()
 //console.log('Estamos en rutas:')
 router.post('/', authenticate, multer().single('avatar'), isImage, mentorController.addMentores) //authenticate
 router.post('/get', mentorController.getMentorId)
+router.post('/eliminar', mentorController.eliminaMentor)
+
 router.get('/muestreos', mentorController.getMentoresMuestreos)
 router.get('/muestreo/:id', mentorController.getMentoresMuestreo)
 router.get('/area/:linkArea', mentorController.getMentoresArea)

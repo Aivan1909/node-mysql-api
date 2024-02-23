@@ -17,5 +17,8 @@ module.exports = {
     apiKey: process.env.API_KEY || ' ',
     senderName: process.env.SENDER_EMAIL || ' '
   },
-  crypt: process.env.CRYPT_SECRET || 'SecretKeyMunayense'
+  crypt: process.env.CRYPT_SECRET || 'SecretKeyMunayense',
+  formats: {
+    dateTime: "YYYY-MM-DD HH:mm:ss"
+  }
 }

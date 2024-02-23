@@ -1,18 +1,28 @@
 import { getConnection } from '../database/database';
 
+const moment = require("moment")
+const config = require('../config');
+import { encryptar, desencryptar } from '../middleware/crypto.mld';
+
 const addAreas = async (req, res) => {
   try {
 
     const area = req.body;
-    area.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    area.usuarioCreacion = desencryptar(area.usuarioCreacion);
+    area.fechaCreacion = moment().format(config.formats.dateTime);
     area.estado = 1;
+    area.link = await crearLink(area.nombre);
 
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_areas SET ?`, area);
 
     res.json({ body: result });
   } catch (error) {
-    res.status(500).json(error.message);
+    const { code } = error;
+
+    if (code == "ER_DUP_ENTRY")
+      res.status(409).json({ message: `e422` });
+    else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
 
@@ -24,7 +34,25 @@ const getAreas = async (req, res) => {
       FROM tmunay_areas tmar
       LEFT JOIN users usc ON tmar.usuarioCreacion=usc.id
       LEFT JOIN users usm ON tmar.usuarioModificacion=usm.id`);
-    result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+    result = [...result].map(item => {
+      var tipoDesc = ""
+      switch (item.tipo) {
+        case "E":
+          tipoDesc = "Especialidad"
+          break;
+        case "D":
+          tipoDesc = "Diagnostico"
+          break;
+        case "N":
+          tipoDesc = "Nanocredito"
+          break;
+
+        default:
+          tipoDesc = ""
+          break;
+      }
+      return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre, tipoDesc }
+    })
 
     for (const area of result) {
       let reEspecialidades = await connection.query(`
@@ -40,7 +68,6 @@ const getAreas = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 };
@@ -54,8 +81,26 @@ const getArea = async (req, res) => {
       FROM tmunay_areas tmar
       LEFT JOIN users usc ON tmar.usuarioCreacion=usc.id
       LEFT JOIN users usm ON tmar.usuarioModificacion=usm.id
-      WHERE id=?`, id);
-    reAreas = [...reAreas].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
+      WHERE tmar.id=?`, id);
+    reAreas = [...reAreas].map(item => {
+      var tipoDesc = ""
+      switch (item.tipo) {
+        case "E":
+          tipoDesc = "Especialidad"
+          break;
+        case "D":
+          tipoDesc = "Diagnostico"
+          break;
+        case "N":
+          tipoDesc = "Nanocredito"
+          break;
+
+        default:
+          tipoDesc = ""
+          break;
+      }
+      return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre, tipoDesc }
+    })
 
     const result = reAreas[0]
     let reEspecialidades = await connection.query(`
@@ -63,7 +108,7 @@ const getArea = async (req, res) => {
       FROM tmunay_especialidad tmes
       LEFT JOIN users usc ON tmes.usuarioCreacion=usc.id
       LEFT JOIN users usm ON tmes.usuarioModificacion=usm.id
-      WHERE estado=1 and areas_id = ?`, result.id)
+      WHERE areas_id = ?`, result.id)
     reEspecialidades = [...reEspecialidades].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     result.especialidades = reEspecialidades
@@ -78,16 +123,23 @@ const getArea = async (req, res) => {
 const updateArea = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcionArea } = req.body;
-    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const areas = { nombre, descripcionArea };
-    areas.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const area = req.body;
+    if (area.nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+
+    area.usuarioModificacion = desencryptar(area.usuarioModificacion);
+    area.fechaModificacion = moment().format(config.formats.dateTime);
+    area.link = await crearLink(area.nombre);
+
     const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_areas SET ? WHERE id=?`, [areas, id]);
+    await connection.query(`UPDATE tmunay_areas SET ? WHERE id=?`, [area, id]);
     const foundareas = await connection.query(`SELECT * FROM tmunay_areas WHERE id=?`, id);
     res.json({ body: foundareas[0] });
   } catch (error) {
-    res.status(500).json(error.message);
+    const { code } = error;
+
+    if (code == "ER_DUP_ENTRY")
+      res.status(409).json({ message: `e422` });
+    else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
 
@@ -113,10 +165,32 @@ const getAreasMuestreo = async (req, res) => {
 
     res.json({ body: result });
   } catch (error) {
-    console.log(error)
     res.status(500).json(error.message);
   }
 };
+
+/* Funciones */
+function crearLink(nombre) {
+  // Replace Spanish characters with normal letters
+  const replacedString = nombre
+    .replace(/[áä]/g, 'a')
+    .replace(/[éë]/g, 'e')
+    .replace(/[íï]/g, 'i')
+    .replace(/[óö]/g, 'o')
+    .replace(/[úü]/g, 'u')
+    .replace(/[ñ]/g, 'n');
+
+  // Remove blank spaces
+  const withoutSpaces = replacedString.replace(/\s/g, '_');
+
+  // Convert to lowercase
+  const lowercaseString = withoutSpaces.toLowerCase();
+
+  // Delete special characters using regular expression
+  const elLink = lowercaseString.replace(/[^a-z0-9]/g, '');
+
+  return elLink
+}
 
 export const methods = {
   addAreas,

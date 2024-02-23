@@ -11,7 +11,7 @@ const getDashboard = async (req, res) => {
     UNION
     SELECT COUNT(*) as valor, 'Usuarios' as titulo, 'fas fa-users' as icono FROM users WHERE estado=1
     UNION
-    SELECT IFNULL(SUM(monto), 0) as valor, 'Monto Financiado' as titulo, 'fas fa-circle-dollar-to-slot' as icono FROM tmunay_montos
+    (SELECT 10 as valor, 'Monto Financiado' as titulo, 'fas fa-circle-dollar-to-slot' as icono FROM roless LIMIT 1)
     UNION
     SELECT COUNT(*) as valor, 'Mentorías' as titulo, 'fas fa-chalkboard' as icono FROM tmunay_mentorias WHERE estado=1
     UNION

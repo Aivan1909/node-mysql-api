@@ -2,6 +2,9 @@ import { getConnection } from "../database/database";
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
+const moment = require("moment")
+const config = require('../config');
+
 const addRegistro = async (req, res) => {
   try {
     const dataAdd = req.body;
@@ -66,6 +69,7 @@ const updateRegistro = async (req, res) => {
     const idInfo = infoNuevo.id;
     delete infoNuevo.id;
     infoNuevo.usuarioModificacion = desencryptar(infoNuevo.usuarioModificacion);
+    infoNuevo.fechaModificacion = moment().format(config.formats.dateTime);
 
 
     const connection = await getConnection();

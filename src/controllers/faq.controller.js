@@ -1,9 +1,14 @@
 import { getConnection } from '../database/database';
+import { encryptar, desencryptar } from '../middleware/crypto.mld'
+
+const moment = require("moment")
+const config = require('../config');
 
 const addRegistro = async (req, res) => {
   try {
     const faq = req.body;
-    faq.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    faq.fechaCreacion = moment().format(config.formats.dateTime);
+    faq.usuarioCreacion = desencryptar(faq.usuarioCreacion)
     faq.estado = 1;
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_faq SET ?`, faq);
@@ -56,8 +61,9 @@ const updateRegistro = async (req, res) => {
   try {
     const { id } = req.params;
     const faq = req.body;
+    faq.usuarioModificacion = desencryptar(faq.usuarioModificacion)
 
-    faq.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    faq.fechaModificacion = moment().format(config.formats.dateTime);
     const connection = await getConnection();
     await connection.query(`UPDATE tmunay_faq SET ? WHERE id=?`, [faq, id]);
 

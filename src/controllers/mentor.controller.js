@@ -1,6 +1,9 @@
 import { getConnection } from '../database/database';
-import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
+import { SaveOneFile, deleleFolder, getOneFile, updateOneFile } from '../middleware/upload';
 import { encryptar, desencryptar } from '../middleware/crypto.mld';
+
+const moment = require("moment")
+const config = require('../config');
 
 /* Funcion que agrega los mentores  */
 const addMentores = async (req, res) => {
@@ -9,7 +12,7 @@ const addMentores = async (req, res) => {
     const { user_id, curriculum, institucion_id, usuarioCreacion } = req.body
     const { canal } = req.body
     const mentor = { user_id: desencryptar(user_id), curriculum, institucion_id, usuarioCreacion };
-    mentor.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    mentor.fechaCreacion = moment().format(config.formats.dateTime);
     mentor.online = canal?.length == 2 ? 0 : canal[0];
     mentor.estado = 2;
 
@@ -94,6 +97,67 @@ const getMentores = async (req, res) => {
     });
 
     res.json({ body: reMentoresImage });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+};
+
+const updateMentor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { curriculum, user_id, tipo, usuarioModificacion } = req.body;
+    if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
+    const mentors = { curriculum, user_id: desencryptar(user_id), tipo, usuarioModificacion };
+    mentors.fechaModificacion = moment().format(config.formats.dateTime);
+
+    const connection = await getConnection();
+    await connection.query(`UPDATE tmunay_mentores SET ? WHERE id=?`, [mentors, id]);
+
+    const foundmentors = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
+
+    if (req.files) {
+      const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
+      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundmentors[0].imagen, file: imagen, targetSize: 400 });
+
+      if (responseUpdateImagen)
+        await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+    }
+
+    res.json({ body: foundmentors[0] });
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+
+const deleteMentor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await getConnection();
+    const result = await connection.query(`DELETE FROM tmunay_mentores WHERE id=?`, id);
+
+    res.json({ body: result });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error.message);
+  }
+};
+
+const eliminaMentor = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const idMentor = desencryptar(id)
+
+    const connection = await getConnection();
+    const foundItem = await connection.query(`SELECT * from tmunay_mentores WHERE id=?`, idMentor);
+    if (foundItem[0]?.estado == 0) {
+      await deleleFolder(foundItem[0].imagen);
+      await connection.query(`DELETE FROM tmunay_mentores WHERE id=?`, idMentor);
+    } else {
+      await connection.query(`UPDATE tmunay_mentores SET estado=0 WHERE id=?`, idMentor);
+    }
+
+    res.json({ body: foundItem[0] });
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message);
@@ -360,54 +424,18 @@ const getMentoresMuestreo = async (req, res) => {
   }
 };
 
-const updateMentor = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { curriculum, user_id, tipo, usuarioModificacion } = req.body;
-    if (user_id === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const mentors = { curriculum, user_id: desencryptar(user_id), tipo, usuarioModificacion };
-    mentors.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-
-    const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_mentores SET ? WHERE id=?`, [mentors, id]);
-
-    const foundmentors = await connection.query(`SELECT * FROM tmunay_mentores WHERE id=?`, id);
-
-    if (req.files) {
-      const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
-      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundmentors[0].imagen, file: imagen, targetSize: 400 });
-
-      if (responseUpdateImagen)
-        await connection.query(`UPDATE tmunay_mentores SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
-    }
-
-    res.json({ body: foundmentors[0] });
-  } catch (error) {
-    res.status(500).json(error.message);
-  }
-};
-
-const deleteMentor = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const connection = await getConnection();
-    const result = await connection.query(`DELETE FROM tmunay_mentores WHERE id=?`, id);
-    res.json({ body: result });
-  } catch (error) {
-    res.status(500).json(error.message);
-  }
-};
-
 
 export const methods = {
   addMentores,
   getMentores,
+  updateMentor,
+  deleteMentor,
+
+  eliminaMentor,
+
   getMentoresMuestreos,
   getMentoresArea,
   getMentor,
   getMentorId,
-
   getMentoresMuestreo,
-  updateMentor,
-  deleteMentor,
 };

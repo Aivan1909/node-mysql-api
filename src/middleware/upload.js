@@ -173,8 +173,10 @@ function isImage(req, res, next) {
 
 function deleleFolder(pathfile) {
   try {
-    const pathFolder = String(pathfile).substring(0, String(pathfile).lastIndexOf('/'));
-    fs.unlinkSync(pathFolder);
+    if (pathfile != "") {
+      const pathFolder = String(pathfile).substring(0, String(pathfile).lastIndexOf('/'));
+      fs.rmSync(pathFolder, { recursive: true, force: true });
+    }
   } catch (error) {
     throw new Error(error);
   }

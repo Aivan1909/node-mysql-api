@@ -1,26 +1,31 @@
 import { getConnection } from '../database/database';
+import { encryptar, desencryptar } from '../middleware/crypto.mld';
 import { SaveOneFile, deleleFolder, getOneFile, updateOneFile } from '../middleware/upload';
+
+const moment = require("moment")
+const config = require('../config');
 
 const addRegistro = async (req, res) => {
   try {
     const Medalla = req.body;
-    Medalla.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    Medalla.fechaCreacion = moment().format(config.formats.dateTime);
+    Medalla.usuarioCreacion = desencryptar(Medalla.usuarioCreacion)
     Medalla.estado = 1;
     const connection = await getConnection();
-    const objImages = {};
-    const result = await connection.query(`INSERT INTO tmunay_ods SET ?`, Medalla);
-    if (req.files) {
-      [...req.files].forEach((item) => {
-        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'Medalla', idFolder: result.insertId, file: item, targetSize: 400 });
-      });
+    const result = await connection.query(`INSERT INTO tmunay_medallasnanay SET ?`, Medalla);
+
+    if (req.file) {
+      const path = await SaveOneFile({ mainFolder: 'MedallaN', idFolder: result.insertId, file: req.file, targetSize: 400 });
+
+      await connection.query(`UPDATE tmunay_medallasnanay SET imagen=? WHERE id=?`, [
+        path || null,
+        result.insertId,
+      ]);
     }
-    await connection.query(`UPDATE tmunay_ods SET imagen=?, imagenEN=? WHERE id=?`, [
-      objImages['imagen'] || null,
-      objImages['imagenEN'] || null,
-      result.insertId,
-    ]);
+
     res.json({ body: result });
   } catch (error) {
+    console.log(error)
     res.status(500).json(error.message);
   }
 };
@@ -30,11 +35,11 @@ const getRegistrosNanay = async (req, res) => {
 
     const connection = await getConnection();
     let result = await connection.query(`
-          SELECT tmmn.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
-          FROM tmunay_medallasnanay tmmn
-          LEFT JOIN users usc ON tmmn.usuarioCreacion=usc.id
-          LEFT JOIN users usm ON tmmn.usuarioModificacion=usm.id
-        `)
+      SELECT tmmn.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre
+      FROM tmunay_medallasnanay tmmn
+      LEFT JOIN users usc ON tmmn.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmmn.usuarioModificacion=usm.id
+    `)
     result = [...result].map(item => {
       return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre }
     })
@@ -53,11 +58,11 @@ const getRegistro = async (req, res) => {
     const { id } = req.params;
     const connection = await getConnection();
     let result = await connection.query(`
-    SELECT tmod.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre 
-    FROM tmunay_ods tmod
-    LEFT JOIN users usc ON tmod.usuarioCreacion=usc.id
-    LEFT JOIN users usm ON tmod.usuarioModificacion=usm.id
-    WHERE tmod.id=?`, id);
+      SELECT tmmn.*, CONCAT(usc.nombre, ' ', usc.apellidos) AS usuarioCreacionNombre, CONCAT(usm.nombre, ' ', usm.apellidos) AS usuarioModificacionNombre 
+      FROM tmunay_medallasnanay tmmn
+      LEFT JOIN users usc ON tmmn.usuarioCreacion=usc.id
+      LEFT JOIN users usm ON tmmn.usuarioModificacion=usm.id
+      WHERE tmmn.id=?`, id);
     result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     if (result.length === 0) return res.status(404).json({ mensaje: "e404" });
@@ -73,29 +78,22 @@ const getRegistro = async (req, res) => {
 const updateRegistro = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, usuarioModificacion } = req.body;
-    if (nombre === undefined) res.status(400).json({ message: 'Bad Request' });
 
-    const Medalla = { nombre, usuarioModificacion };
-    Medalla.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const Medalla = req.body;
+    Medalla.fechaModificacion = moment().format(config.formats.dateTime);
+    Medalla.usuarioModificacion = desencryptar(Medalla.usuarioModificacion)
 
     const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_ods SET ? WHERE id=?`, [Medalla, id]);
-    const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
+    await connection.query(`UPDATE tmunay_medallasnanay SET ? WHERE id=?`, [Medalla, id]);
+    const foundItem = await connection.query(`SELECT * FROM tmunay_medallasnanay WHERE id=?`, id);
 
-    if (req.files) {
-      const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
-      const imagenEn = [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
-      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundOds[0].imagen, file: imagen, targetSize: 400 });
-      const responseUpdateImagenEn =
-        imagenEn && await updateOneFile({ pathFile: foundOds[0].imagenEN, file: imagenEn, targetSize: 400 });
+    if (req.file) {
+      const responseUpdateImagen = await updateOneFile({ pathFile: foundItem[0].imagen, file: req.file, targetSize: 400 });
+
       if (responseUpdateImagen)
-        await connection.query(`UPDATE tmunay_ods SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
-
-      if (responseUpdateImagenEn)
-        await connection.query(`UPDATE tmunay_ods SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
+        await connection.query(`UPDATE tmunay_medallasnanay SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
     }
-    res.json({ body: foundOds[0] });
+    res.json({ body: foundItem[0] });
   } catch (error) {
     console.log(error)
     res.status(500).json(error.message);
@@ -104,14 +102,14 @@ const updateRegistro = async (req, res) => {
 
 const deleteRegistro = async (req, res) => {
   try {
-    console.log(req.params);
     const { id } = req.params;
     const connection = await getConnection();
-    const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
-    if (foundOds.length > 0) {
-      deleleFolder(foundOds[0].imagen || foundOds[0].imagenEN);
+    const foundItem = await connection.query(`SELECT * FROM tmunay_medallasnanay WHERE id=?`, id);
+    if (foundItem.length > 0) {
+      deleleFolder(foundItem[0].imagen);
     }
-    const result = await connection.query(`DELETE FROM tmunay_ods WHERE id=?`, id);
+
+    const result = await connection.query(`DELETE FROM tmunay_medallasnanay WHERE id=?`, id);
     res.json({ body: result });
   } catch (error) {
     console.log(error)

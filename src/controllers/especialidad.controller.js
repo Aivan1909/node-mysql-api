@@ -1,22 +1,36 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleteOneFile, getOneFile, updateOneFile } from '../middleware/upload';
 
+const moment = require("moment")
+const config = require('../config');
+import { encryptar, desencryptar } from '../middleware/crypto.mld';
 
 const addEspecialidades = async (req, res) => {
   try {
-    let bkArea = req.body.area;
-    delete req.body.area;
+    /* let bkArea = req.body.area;
+    delete req.body.area; */
     const especialidad = req.body;
-    especialidad.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    especialidad.usuarioCreacion = desencryptar(especialidad.usuarioCreacion);
+    especialidad.fechaCreacion = moment().format(config.formats.dateTime);
     especialidad.estado = 1;
-    especialidad.areas_id = bkArea;
+    //especialidad.areas_id = bkArea;
+    especialidad.link = await crearLink(especialidad.nombre);
+
     const connection = await getConnection();
     const result = await connection.query(`INSERT INTO tmunay_especialidad SET ?`, especialidad);
-    const path = await SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file, targetSize: 500 });
-    await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
+
+    if (req.file) {
+      const path = await SaveOneFile({ mainFolder: 'especialidad', idFolder: result.insertId, file: req.file, targetSize: 500 });
+      await connection.query(`UPDATE tmunay_especialidad SET imagen=? WHERE id=?`, [path, result.insertId]);
+    }
+
     res.json({ body: result });
   } catch (error) {
-    res.status(500).json(error.message);
+    const { code } = error;
+
+    if (code == "ER_DUP_ENTRY")
+      res.status(409).json({ message: `e422` });
+    else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
 
@@ -50,7 +64,7 @@ const getEspecialidad = async (req, res) => {
       FROM tmunay_especialidad e
       LEFT JOIN users usc ON e.usuarioCreacion=usc.id
       LEFT JOIN users usm ON e.usuarioModificacion=usm.id
-      WHERE id=?`, id);
+      WHERE e.id=?`, id);
     result = [...result].map(item => { return { ...item, usuarioCreacion: item.usuarioCreacionNombre, usuarioModificacion: item.usuarioModificacionNombre } })
 
     if (!result.length > 0) return res.status(404).json({ mensaje: "e404" });
@@ -64,12 +78,14 @@ const getEspecialidad = async (req, res) => {
 const updateEspecialidad = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion } = req.body;
-    if (nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
-    const especialidads = { nombre, descripcion };
-    especialidads.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    const especialidad = req.body;
+    if (especialidad.nombre === undefined) return res.status(400).json({ message: 'Bad Request' });
+    especialidad.usuarioModificacion = desencryptar(especialidad.usuarioModificacion);
+    especialidad.fechaModificacion = moment().format(config.formats.dateTime);
+    especialidad.link = await crearLink(especialidad.nombre);
+
     const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_especialidad SET ? WHERE id=?`, [especialidads, id]);
+    await connection.query(`UPDATE tmunay_especialidad SET ? WHERE id=?`, [especialidad, id]);
     const foundEspecialidad = await connection.query(`SELECT * FROM tmunay_especialidad WHERE id=?`, id);
     if (req.file) {
       const responseUpdateImage = updateOneFile({ pathFile: foundEspecialidad[0].imagen, file: req.file, targetSize: 500 });
@@ -78,7 +94,11 @@ const updateEspecialidad = async (req, res) => {
     }
     res.json({ body: foundEspecialidad[0] });
   } catch (error) {
-    res.status(500).json(error.message);
+    const { code } = error;
+
+    if (code == "ER_DUP_ENTRY")
+      res.status(409).json({ message: `e422` });
+    else res.status(500).json({ message: "Ocurrió un error inesperado." });
   }
 };
 
@@ -144,6 +164,29 @@ const getEspecialidadesCapsula = async (req, res) => {
     console.log("getEspecialidadesCapsula", error)
     res.status(500).json(error.message);
   }
+}
+
+/* Funciones */
+function crearLink(nombre) {
+  // Replace Spanish characters with normal letters
+  const replacedString = nombre
+    .replace(/[áä]/g, 'a')
+    .replace(/[éë]/g, 'e')
+    .replace(/[íï]/g, 'i')
+    .replace(/[óö]/g, 'o')
+    .replace(/[úü]/g, 'u')
+    .replace(/[ñ]/g, 'n');
+
+  // Remove blank spaces
+  const withoutSpaces = replacedString.replace(/\s/g, '_');
+
+  // Convert to lowercase
+  const lowercaseString = withoutSpaces.toLowerCase();
+
+  // Delete special characters using regular expression
+  const elLink = lowercaseString.replace(/[^a-z0-9]/g, '');
+
+  return elLink
 }
 
 export const methods = {
