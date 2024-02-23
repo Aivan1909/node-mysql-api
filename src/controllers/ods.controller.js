@@ -1,26 +1,33 @@
 import { getConnection } from '../database/database';
 import { SaveOneFile, deleleFolder, getOneFile, updateOneFile } from '../middleware/upload';
 
+const moment = require("moment")
+const config = require('../config');
+import { encryptar, desencryptar } from '../middleware/crypto.mld';
+
 const addOdss = async (req, res) => {
   try {
-    const Ods = req.body;
-    Ods.fechaCreacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
-    Ods.estado = 1;
+    const ods = req.body;
+    ods.usuarioCreacion = desencryptar(ods.usuarioCreacion);
+    ods.fechaCreacion = moment().format(config.formats.dateTime);
+    ods.estado = 1;
     const connection = await getConnection();
     const objImages = {};
-    const result = await connection.query(`INSERT INTO tmunay_ods SET ?`, Ods);
+    const result = await connection.query(`INSERT INTO tmunay_ods SET ?`, ods);
     if (req.files) {
-      [...req.files].forEach((item) => {
-        objImages[item.fieldname] = SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: item, targetSize: 400 });
-      });
+      for (const item of [...req.files]) {
+        objImages[item.fieldname] = await SaveOneFile({ mainFolder: 'ods', idFolder: result.insertId, file: item, targetSize: 400 });
+      }
+
+      await connection.query(`UPDATE tmunay_ods SET imagen=?, imagenEN=? WHERE id=?`, [
+        objImages['imagen'] || null,
+        objImages['imagenEN'] || null,
+        result.insertId,
+      ]);
+      res.json({ body: result });
     }
-    await connection.query(`UPDATE tmunay_ods SET imagen=?, imagenEN=? WHERE id=?`, [
-      objImages['imagen'] || null,
-      objImages['imagenEN'] || null,
-      result.insertId,
-    ]);
-    res.json({ body: result });
   } catch (error) {
+    console.log(error)
     res.status(500).json(error.message);
   }
 };
@@ -55,7 +62,6 @@ const getOdss = async (req, res) => {
 
 const getOds = async (req, res) => {
   try {
-    console.log(req.params);
     const { id } = req.params;
     const connection = await getConnection();
     let result = await connection.query(`
@@ -79,27 +85,31 @@ const getOds = async (req, res) => {
 const updateOds = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, usuarioModificacion } = req.body;
-    if (nombre === undefined) res.status(400).json({ message: 'Bad Request' });
+    const ods = req.body;
+    if (ods.nombre === undefined) res.status(400).json({ message: 'Bad Request' });
 
-    const Ods = { nombre, usuarioModificacion };
-    Ods.fechaModificacion = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+    ods.usuarioModificacion = desencryptar(ods.usuarioModificacion);
+    ods.fechaModificacion = moment().format(config.formats.dateTime);
 
     const connection = await getConnection();
-    await connection.query(`UPDATE tmunay_ods SET ? WHERE id=?`, [Ods, id]);
+    await connection.query(`UPDATE tmunay_ods SET ? WHERE id=?`, [ods, id]);
     const foundOds = await connection.query(`SELECT * FROM tmunay_ods WHERE id=?`, id);
 
     if (req.files) {
-      const imagen = [...req.files].filter((item) => item.fieldname === 'imagen')[0];
-      const imagenEn = [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
-      const responseUpdateImagen = imagen && await updateOneFile({ pathFile: foundOds[0].imagen, file: imagen, targetSize: 400 });
-      const responseUpdateImagenEn =
-        imagenEn && await updateOneFile({ pathFile: foundOds[0].imagenEN, file: imagenEn, targetSize: 400 });
-      if (responseUpdateImagen)
-        await connection.query(`UPDATE tmunay_ods SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+      const imagen = await [...req.files].filter((item) => item.fieldname === 'imagen')[0];
+      if (imagen) {
+        const responseUpdateImagen = await updateOneFile({ pathFile: foundOds[0].imagen, file: imagen, targetSize: 400 });
+        if (responseUpdateImagen)
+          await connection.query(`UPDATE tmunay_ods SET imagen=? WHERE id=?`, [responseUpdateImagen, id]);
+      }
+      const imagenEn = await [...req.files].filter((item) => item.fieldname === 'imagenEN')[0];
+      if (imagenEn) {
+        const responseUpdateImagenEn = await updateOneFile({ pathFile: foundOds[0].imagenEN, file: imagenEn, targetSize: 400 });
+        console.log("Img", responseUpdateImagenEn)
 
-      if (responseUpdateImagenEn)
-        await connection.query(`UPDATE tmunay_ods SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
+        if (responseUpdateImagenEn)
+          await connection.query(`UPDATE tmunay_ods SET imagenEN=? WHERE id=?`, [responseUpdateImagenEn, id]);
+      }
     }
     res.json({ body: foundOds[0] });
   } catch (error) {

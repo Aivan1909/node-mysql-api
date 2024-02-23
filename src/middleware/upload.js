@@ -102,7 +102,7 @@ function getOneFile(pathFile) {
 */
 async function updateOneFile({ pathFile, file, targetSize }) {
   try {
-    deleteOneFile(pathFile);
+    await deleteOneFile(pathFile);
 
     const oldExt = await path.extname(pathFile);
     const newExt = ".webp";
@@ -126,18 +126,19 @@ async function updateOneFile({ pathFile, file, targetSize }) {
     }
 
     // Convert the file to .webp format
-    await sharp(file.buffer)
+    const retorno = await sharp(file.buffer)
       .resize(targetWidth, targetHeight)
       .webp()
       .toFile(filePath)
       .then(async () => {
         console.log('File converted to webp:', filePath);
-
-        return oldExt !== newExt && filePath;
+        return filePath;
       })
       .catch((error) => {
         throw new Error('Error converting file to webp:', error);
       });
+      
+    return retorno;
 
     /* fs.writeFile(pathFile, file.buffer, 'binary', (error) => {
       if (error) throw new Error('Error al actualizar el archivo', error);
